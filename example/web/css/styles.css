@@ -1,0 +1,50 @@
+.top-nav {
+  padding: 0.5rem 3rem;
+  border-bottom: 0.1rem solid var(--color-fg);
+}
+
+.top-nav ul {
+  list-style: none;
+  gap: var(--nav-page);
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.top-nav li>a {
+  display: inline-block;
+  padding: var(--btn-py) var(--btn-px);
+  margin: 0 var(--space-2);
+  border-radius: var(--btn-radius);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  border: 1px solid var(--btn-border);
+  text-decoration: none;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.top-nav li>a:hover {
+  background: var(--btn-hover-bg);
+  color: var(--btn-hover-fg);
+
+}
+
+.theme-menu {
+  display: inline-block;
+}
+
+.theme-label {
+  padding: var(--space-3);
+}
+
+.theme-select {
+
+  cursor: pointer;
+}
+
+.theme-select>option {
+  background-color: var(--color-bg);
+  color: var(--color-fg);
+}

@@ -1,0 +1,257 @@
+//| mill-version: 1.0.5
+//| mvnDeps: [ "com.lihaoyi::mill-contrib-buildinfo:$MILL_VERSION", "org.typelevel::scalac-options:0.1.8" ]
+
+package build
+
+import mill.*, scalalib.*, javalib.*, scalajslib.*, scalajslib.api.*, scalanativelib.*, ujson.*
+import deps.{
+  Versions => V, 
+  Munit, Weaver, Dom,
+  Lihaoyi, TPolecat
+}
+
+import org.typelevel.scalacoptions._
+import org.typelevel.scalacoptions.ScalacOption
+import org.typelevel.scalacoptions.ScalaVersion
+object Config {
+
+  lazy val scalaVersionDef = V.scala
+  lazy val scalaVersions: Seq[String] = Seq(V.scala)
+
+  private def tokensForScalacOptions(proposed: Set[ScalacOption]) = {
+    val version = ScalaVersion.fromString(scalaVersionDef).toOption.get
+    ScalacOptions.tokensForVersion(version, proposed)
+  }
+
+  // Common scalac options
+  lazy val compilerOptions = tokensForScalacOptions(
+    Set(
+      ScalacOptions.encoding("utf8"),
+      ScalacOptions.feature,
+      ScalacOptions.unchecked,
+      ScalacOptions.deprecation,
+      ScalacOptions.warnValueDiscard,
+      ScalacOptions.warnNonUnitStatement,
+      ScalacOptions.languageStrictEquality,
+      ScalacOptions.release("21"),
+      ScalacOptions.advancedKindProjector,
+    )
+  )
+
+}
+
+trait CommonSettings extends ScalaModule {
+ 
+  def scalaVersion = Config.scalaVersionDef
+
+  override def scalacOptions = Task {
+    super.scalacOptions() ++ Config.compilerOptions
+  }
+
+  // These dependencies must work on all platforms
+  override def mvnDeps = Task {
+    super.mvnDeps()
+  }
+
+  // Libraries only needed for compilation, typically
+  // these are injected into the runtime, so should not be
+  // contained in the jar
+  override def compileMvnDeps = Task {
+    super.compileMvnDeps() ++ Seq()
+  }
+
+  // Libraries only needed at runtime
+  override def runMvnDeps = Task {
+    super.runMvnDeps() ++ Seq()
+  }
+
+}
+
+lazy val scalaVersions = Config.scalaVersions.head
+
+trait Shared extends CrossScalaModule, PlatformScalaModule {
+
+  override def scalacOptions = Task {
+    super.scalacOptions() ++ Seq("-language:implicitConversions") ++ Config.compilerOptions
+  }
+}
+
+trait Js extends Shared, ScalaJSModule {
+  // Scala.js specific settings can go here
+  override def scalaJSVersion = V.scalaJS // Example version, adjust as needed
+
+}
+
+trait CommonTestConfig extends TestModule.Munit {
+
+  def munitVersion = V.munit
+
+  def testFrameworks = Seq(
+    "munit.Framework",
+    //"weaver.framework.CatsEffect",
+  )
+
+  override def mvnDeps = super.mvnDeps() ++ Munit.all ++ Weaver.all ++ Seq(
+    Lihaoyi.osLib, Lihaoyi.pprint, Lihaoyi.sourcecode
+  )
+}
+
+object tags extends Module {
+
+  trait JvmModule extends Shared {
+    override def mvnDeps = super.mvnDeps() 
+  }
+
+  object jvm extends Cross[JvmModule](scalaVersions) {
+    def moduleDeps = Seq()
+  }
+
+
+  trait JsModule extends Js {
+    override def mvnDeps = super.mvnDeps()  ++ Seq(
+      mvn"com.raquo::ew::0.2.0"  // Scala.js)
+    )
+  }
+
+  object js extends Cross[JsModule](scalaVersions) {
+    def moduleDeps = Seq()
+  }
+
+}
+
+object dom extends Module {
+
+  trait JvmModule extends Shared {
+    override def mvnDeps = super.mvnDeps() 
+    
+    override def moduleDeps = Seq(tags.jvm())
+
+    override def scalacOptions = Task {
+      super.scalacOptions() ++ Seq(
+        "-language:implicitConversions"
+      )
+    }
+
+    object test extends ScalaTests, CommonTestConfig
+
+  }
+
+  object jvm extends Cross[JvmModule](scalaVersions) {}
+
+  trait JsModule extends Shared, Js {
+    override def mvnDeps = super.mvnDeps() 
+    override def moduleDeps = Seq(tags.js())
+  }
+
+  object js extends Cross[JsModule] (scalaVersions){
+  }
+
+}
+
+object html extends  Module {
+
+  trait JvmModule extends Shared {
+
+    def moduleDeps = Seq(dsl.jvm())
+
+    object test extends ScalaTests, CommonTestConfig 
+  }
+
+  object jvm extends Cross[JvmModule](scalaVersions) {}
+
+  trait JsModule extends Js {
+    override def mvnDeps = super.mvnDeps() ++ Seq(
+    )
+    def moduleDeps = Seq(dsl.js())
+  }
+
+  object js extends Cross[JsModule](scalaVersions) {
+    def moduleDeps = Seq()
+  }
+
+}
+
+object markdown extends  Module {
+
+  trait JvmModule extends Shared {
+
+    override def mvnDeps = super.mvnDeps() ++ Seq(
+     Lihaoyi.osLib, Lihaoyi.pprint, Lihaoyi.sourcecode
+    )
+
+    def moduleDeps = Seq(dom.jvm())
+
+    object test extends ScalaTests, CommonTestConfig 
+  }
+
+  object jvm extends Cross[JvmModule](scalaVersions) {}
+
+  trait JsModule extends Js {
+    override def mvnDeps = super.mvnDeps() ++ Seq(
+    )
+    def moduleDeps = Seq(dom.js())
+  }
+
+  object js extends Cross[JsModule](scalaVersions) {
+    def moduleDeps = Seq()
+  }
+
+}
+
+object dsl extends Module {
+
+  trait JvmModule extends Shared {
+    override def mvnDeps = super.mvnDeps() 
+    
+    override def moduleDeps = Seq(dom.jvm(), markdown.jvm())
+
+    override def scalacOptions = Task {
+      super.scalacOptions() ++ Seq(
+        "-language:implicitConversions"
+      )
+    }
+
+    object test extends ScalaTests, CommonTestConfig 
+
+  }
+
+  object jvm extends Cross[JvmModule](scalaVersions) {}
+
+  trait JsModule extends Shared, Js {
+    override def mvnDeps = super.mvnDeps() 
+    override def moduleDeps = Seq(dom.js(), markdown.jvm())
+  }
+
+  object js extends Cross[JsModule] (scalaVersions){
+  }
+
+}
+
+object example extends Module {
+
+  trait JvmModule extends Shared {
+
+    override def mvnDeps = super.mvnDeps() ++ Seq(
+     Lihaoyi.osLib, Lihaoyi.pprint, Lihaoyi.sourcecode
+    )
+
+    def moduleDeps = Seq(dom.jvm(), html.jvm())
+
+    object test extends ScalaTests, CommonTestConfig 
+  }
+
+  object jvm extends Cross[JvmModule](scalaVersions) {}
+
+  trait JsModule extends Js {
+    override def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn"com.raquo::airstream::17.2.1",
+      mvn"org.scala-js::scalajs-dom::2.8.0"
+    )
+  }
+
+  object js extends Cross[JsModule](scalaVersions) {
+    def moduleDeps = Seq()
+  }
+
+}
+

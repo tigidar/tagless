@@ -1,0 +1,57 @@
+package build.deps
+
+import mill.*, scalalib.*
+
+import build.deps.{Versions => V}
+
+/**
+ * N => Only available on Native
+ * J => Only available on JVM
+ * S => Only available on Scala.js
+ * Nothing implies multi-platform support
+  */
+
+object Lihaoyi {
+
+  def upickle = mvn"com.lihaoyi::upickle::${V.Lihaoyi.upickle}"
+  def osLib = mvn"com.lihaoyi::os-lib::${V.Lihaoyi.osLib}"
+  def fansi = mvn"com.lihaoyi::fansi::${V.Lihaoyi.fansi}"
+  def sourcecode = mvn"com.lihaoyi::sourcecode::${V.Lihaoyi.sourcecode}"
+  def pprint = mvn"com.lihaoyi::pprint::${V.Lihaoyi.pprint}"
+
+  def all = Seq(upickle, osLib, fansi, sourcecode, pprint)
+}
+
+object TPolecat {
+  def typename = mvn"org.tpolecat::typename::${V.TPolecat.typename}"
+}
+
+object Dom {
+  lazy val domtypesV = V.domtypes
+  def domtypes =
+    mvn"com.raquo::domtypes::$domtypesV"
+}
+
+object Weaver {
+  lazy val weaverV = V.weaver
+  def weaverCats = mvn"org.typelevel::weaver-cats::$weaverV"
+  def weaverScalaCheck = mvn"org.typelevel::weaver-scalacheck::$weaverV"
+  lazy val all = Seq(weaverCats, weaverScalaCheck)
+}
+
+object Munit {
+
+  lazy val munitV = V.munit
+
+  def munit = mvn"org.scalameta::munit::$munitV"
+  def munitDiff = mvn"org.scalameta::munit-diff::$munitV"
+  def munitCatsEffect = mvn"org.typelevel::munit-cats-effect::${V.munitCatsEffect}"
+  def munitScalaCheck = mvn"org.scalameta::munit-scalacheck::${V.munitScalaCheck}"
+
+  lazy val all = Seq(
+    munit, munitDiff, munitScalaCheck
+  )
+
+}
+
+
