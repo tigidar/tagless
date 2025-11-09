@@ -3,3 +3,70 @@
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+
+example/web/src/scala
+
+.bsp
+.metals
+.bloop
+.scala-build/
+out/
+
+# probably mill bsp hash or something
+mill.*
+
+# Node modules
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Vite cache
+.vite/
+
+# Tailwind CSS output
+*.css.map
+*.tmp
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+.env.*
+
+# IDE/editor files
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Dependency directories
+.pnpm/
+.cache/
+
+# Logs
+logs
+pnpm-debug.log*
+lerna-debug.log*
+
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
