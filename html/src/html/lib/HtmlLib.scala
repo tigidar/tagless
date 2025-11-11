@@ -59,6 +59,7 @@ def themeMenu =
           > option("Night", value := "night")
           > option("Day", value := "day")
           > option("Xorian", value := "xorian")
+          > option("Inverted Day", value := "inverted-day")
 
 def menuBlock(menu: Menu) =
   ~ navTag(

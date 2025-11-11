@@ -77,26 +77,6 @@ l - lightness, 98% nearly white color
 
 }
 
-/* Dark mode tokens (opt-in) */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg: hsl(220 10% 10%);
-    --color-fg: hsl(51 76% 65%);
-    --color-muted: hsl(220 10% 70%);
-    --color-border: hsl(220 10% 28%);
-    --color-selection-bg: hsl(220 40% 30%);
-    /* --hsl(220deg 87.71% 32.8%) */
-
-    --btn-fg: hsl(220deg 31.66% 13.25%);
-    --btn-bg: hsl(51.01deg 76.81% 49.24%);
-    --btn-border: hsl(51 76% 75%);
-    --btn-hover-bg: hsl(51 64% 62%);
-    --btn-hover-fg: hsl(220 10% 15%);
-    --btn-active-bg: hsl(51 64% 55%);
-    --focus: hsl(220 90% 56%);
-    color-scheme: dark;
-  }
-}
 
 :root[data-theme="night"] {
   --color-bg: hsl(220 10% 10%);
@@ -112,6 +92,37 @@ l - lightness, 98% nearly white color
   --btn-active-bg: hsl(220 14% 88%);
   --focus: hsl(220 90% 56%);
   color-scheme: dark;
+}
+
+:root[data-theme="inverted-day"] {
+  --color-bg: hsl(0 0% 96%);
+  /* light gray background */
+  --color-fg: hsl(0 0% 0%);
+  /* pure black text */
+  --color-muted: hsl(0 0% 30%);
+  /* dark gray for muted text */
+  --color-border: hsl(0 0% 25%);
+  /* dark gray borders */
+  --color-accent: hsl(0 0% 0%);
+  /* black accent color */
+  --color-accent-contrast: hsl(0 0% 100%);
+  /* white text on black buttons */
+  --color-selection-bg: hsl(0 0% 70%);
+  /* medium gray highlight */
+
+  --btn-fg: hsl(0 0% 100%);
+  /* white text on buttons */
+  --btn-bg: hsl(0 0% 0%);
+  /* black button background */
+  --btn-border: hsl(0 0% 20%);
+  /* dark gray border */
+  --btn-hover-bg: hsl(0 0% 10%);
+  /* very dark gray hover */
+  --btn-active-bg: hsl(0 0% 20%);
+  /* dark gray active state */
+  --focus: hsl(0 0% 0%);
+  /* black focus outline */
+  color-scheme: light;
 }
 
 :root[data-theme="day"] {
@@ -147,6 +158,27 @@ l - lightness, 98% nearly white color
   --btn-active-bg: hsl(250 70% 50%);
   --focus: hsl(250 90% 56%);
   color-scheme: light;
+}
+
+/* Dark mode tokens (opt-in) */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --color-bg: hsl(220 10% 10%);
+    --color-fg: hsl(51 76% 65%);
+    --color-muted: hsl(220 10% 70%);
+    --color-border: hsl(220 10% 28%);
+    --color-selection-bg: hsl(220 40% 30%);
+    /* --hsl(220deg 87.71% 32.8%) */
+
+    --btn-fg: hsl(220deg 31.66% 13.25%);
+    --btn-bg: hsl(51.01deg 76.81% 49.24%);
+    --btn-border: hsl(51 76% 75%);
+    --btn-hover-bg: hsl(51 64% 62%);
+    --btn-hover-fg: hsl(220 10% 15%);
+    --btn-active-bg: hsl(51 64% 55%);
+    --focus: hsl(220 90% 56%);
+    color-scheme: dark;
+  }
 }
 
 /* -------------------- */

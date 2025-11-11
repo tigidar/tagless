@@ -37,13 +37,14 @@ object Events:
     pageChangeEvents.addObserver(
       Observer[dom.Event] { e =>
         e.target match
-          case b: Body =>
-            println(s"Body event: ${b.id}, ${b.className}, ${b.innerHTML}")
           case sel: html.Select =>
+            println(s"Select value:  ${sel.value}")
             SchemeEvent.setScheme(sel.value)
             println(
               s"Select event: ${sel.id}, ${sel.className}, ${sel.value}, ${sel.selectedIndex}"
             )
+          case b: Body =>
+            println(s"Body event: ${b.id}, ${b.className}, ${b.innerHTML}")
 
           case e =>
             println(s"Unregistered event: ${e}")
@@ -60,7 +61,7 @@ object Events:
             println(s"Button event: ${b.id}, ${b.className}, ${b.value}")
             e.preventDefault()
           case _ =>
-            println(s"Other event: ${e.target}")
+            println(s"Other Submit event: ${e.target}")
             e.preventDefault()
       }
     )
@@ -75,7 +76,7 @@ object Events:
             println(s"Anchor event: ${a.id}, ${a.className}, ${a.href}")
             e.preventDefault()
           case _ =>
-            println(s"Other event: ${e.target}")
+            println(s"Other Click event: ${e.target}")
           // e.preventDefault()
       }
     )
@@ -92,7 +93,7 @@ object Events:
           println(s"Button event2: ${b.id}, ${b.className}")
           e.preventDefault()
         case _ =>
-          println(s"Other event2: ${e.target}")
+          println(s"Other  Submit event2: ${e.target}")
           e.preventDefault()
 
     val s1 = valuesEventBus.events.addObserver(obs1)
