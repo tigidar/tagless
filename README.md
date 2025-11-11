@@ -10,7 +10,13 @@ This is a simple tool to write html snippets using a dsl in Scala 3.
 
 This `very much` a `WIP` and highly experimental project!!
 
-Instead of reactive html tag manipulation in the dom, we create one html page via statically typed scala. We use mostly `css` in combination with the frontend streaming library `Airstream` to create reactive web pages using css toggling. Look in the `example` (very `wip`) how this could look like.
+Instead of reactive html tag manipulation in the dom, we create one html page via statically typed scala (wip).
+
+We experiment for now mostly using `css` in combination with the frontend streaming library `Airstream` to create reactive web pages using css toggling. Look in the `example` (very `wip`) how this could look like. The experiment is also to see how we can integrate typesafety between the typed html dsl and the reactive state management in `Airstream`.
+
+Later we plan to add htmx support which should be pretty straight forward.
+
+We use a `Zipper` pattern to navigate the dom tree while building it. The `Zipper` concept was first presented in the paper [Functional Pearl: The Zipper, written by G. Huet](https://www.cambridge.org/core/journals/journal-of-functional-programming/article/zipper/0C058890B8A9B588F26E6D68CF0CE204).
 
 ```scala
 import md.Markdown
@@ -97,6 +103,8 @@ val body =
   > scriptTag( tpe := "module", src := "/src/main.ts") // `>` Add a sibling script tag
 ```
 
+The combination of adding fragments, and building dom by descending into its children is not totally fleshed out. It is subject to change when we find a better ways to separate or clarify the two concepts.
+
 ## Licensing
 
 This project is dual-licensed under the Apache License 2.0 and the MIT License.
@@ -151,8 +159,8 @@ The example app showcases some experimental ideas on how to use the library. Pri
 This simply runs the dsl and write its output to `index.html` in the web folder:
 
 ```bash
-export SCALA_VERSION=3.7.2
-mill -w example["$SCALA_VERSION"].jvm.run
+export SCALA_VERSION=3.7.3
+mill -w example.jvm["$SCALA_VERSION"].run
 ```
 
 ### Compile ScalaJS code
@@ -160,22 +168,22 @@ mill -w example["$SCALA_VERSION"].jvm.run
 To compile the scalajs code, run:
 
 ```bash
-export SCALA_VERSION=3.7.2
-mill -w example["$SCALA_VERSION"].js.compile
+export SCALA_VERSION=3.7.3
+mill -w example.js["$SCALA_VERSION"].compile
 ```
 
 To generate the javascript code, run:
 
 ```bash
 # dev mode
-mill -w example["$SCALA_VERSION"].js.fastLinkJS
+mill -w example.js["$SCALA_VERSION"].fastLinkJS
 ```
 
 If you want production code, highly optimized, run:
 
 ```bash
 # release mode
-mill -w example["$SCALA_VERSION"].js.fullLinkJS
+mill -w example.js["$SCALA_VERSION"].fullLinkJS
 ```
 
 ### Link in scalajs code into the web app
