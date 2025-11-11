@@ -7,7 +7,7 @@ object Home {
   val content = Markdown.^
     <# "Welcome to the TODO App!"
     < "This is a simple TODO application built with Scala.js and a custom markdown DSL."
-    <## "Features"
+    <## "Greate features"
     <* "Add new TODO items"
     <* "Mark items as completed"
     <* "Delete items"
