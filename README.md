@@ -97,18 +97,14 @@ val body =
   > scriptTag( tpe := "module", src := "/src/main.ts") // `>` Add a sibling script tag
 ```
 
-## Licesning
+## Licensing
 
-This project is licensed under the Apache License 2.0.
-It includes components licensed under the MIT License:
+This project is dual-licensed under the Apache License 2.0 and the MIT License.
 
-- tags (Copyright 2017 Nikita Gazarov)
+* The overall project is licensed under the Apache License 2.0.
 
-`tags` is taken from:
-
-https://github.com/raquo/scala-dom-types
-
-It is slithly modified in this project.
+* The `tags` submodule is licensed under the MIT License, originally from
+[raquo/scala-dom-types](https://github.com/raquo/scala-dom-types) (Copyright © 2017 Nikita Gazarov), and has been slightly modified for use in this project.
 
 ## How To
 
