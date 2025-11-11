@@ -187,7 +187,7 @@ mill -w example["$SCALA_VERSION"].js.fullLinkJS
 To simplify access to generated ScalaJS Javascript code, make this symlink:
 
 ```bash
-ln -sfnT "$(realpath out/example/js/3.7.2/fastLinkJS.dest)" example/web/src/scala
+ln -sfnT "$(realpath out/example/js/3.7.3/fastLinkJS.dest)" example/web/src/scala
 ```
 
 Not sure about the T option, it might only be needed if the folder already exists to avoid putting the symlink inside the folder.

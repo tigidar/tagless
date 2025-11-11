@@ -28,6 +28,7 @@ object Index:
       >> div(idAttr := "app")
       > div(idAttr := "welcome-content")
       >>^ Home.content
+      >>^ About.content
       > scriptTag( tpe := "module", src := "/src/main.ts")
 
   val root = ~ htmlRootTag >> 
