@@ -46,8 +46,8 @@ def navItems(menu: Menu) =
   ~ ul(idAttr := "menu-items")
     >> menu.items.map:
        case (key, u) => 
-         ~ li( idAttr := s"menu-${key}")
-            >> a(u.title.value, href := u.url.value)
+         ~ li( )
+            >> a(u.title.value, idAttr := s"menu-${key}", href := u.url.value)
 
 def themeMenu =
   ~ form(idAttr := "theme-menu", cls := "theme-menu grid-start")

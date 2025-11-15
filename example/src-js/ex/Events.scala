@@ -18,13 +18,13 @@ object Events:
   inline def get(id: String) =
     dom.document.getElementById(id)
 
-  val pageChangeEvents =
+  val changeEvents =
     DomEventStream(dom.document, "change", useCapture = true)
 
-  val pageSubmitEvents =
+  val submitEvents =
     DomEventStream(dom.document, "submit", useCapture = true)
 
-  val pageClickEvents =
+  val clickEvents =
     DomEventStream(dom.document, "click", useCapture = true)
 
   def init() =
@@ -34,7 +34,7 @@ object Events:
     val obs1 = Observer[Int](newValue => println(newValue))
     val obs2 = Observer[String](newValue => println(newValue))
 
-    pageChangeEvents.addObserver(
+    val subscription = changeEvents.addObserver(
       Observer[dom.Event] { e =>
         e.target match
           case sel: html.Select =>
@@ -51,7 +51,7 @@ object Events:
       }
     )
 
-    pageSubmitEvents.addObserver(
+    val changeSubsription = submitEvents.addObserver(
       Observer[dom.Event] { e =>
         e.target match
           case f: html.Form =>
@@ -66,7 +66,7 @@ object Events:
       }
     )
 
-    pageClickEvents.addObserver(
+    val clickSubscription = clickEvents.addObserver(
       Observer[dom.Event] { e =>
         e.target match
           case b: html.Button =>
@@ -81,7 +81,7 @@ object Events:
       }
     )
 
-    dom.document.onsubmit = (e: dom.Event) =>
+    val submitSubscription = dom.document.onsubmit = (e: dom.Event) =>
       e.target match
         case f: html.Form =>
           println(s"Form event2: ${f.id}, ${f.className}, ${f.action}")
