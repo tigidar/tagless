@@ -97,10 +97,10 @@ def navItems(menu: Menu) =
 val body = 
 ~ bodyTag // `~` initiates the Cursor in the Zipper
   >>^ menuBlock(menu) // `>>^` Add a fragment as a child, do not descend into it
-  >> div(idAttr := "app") // `>>` Add a div with id "app" as a child, descend into it
-  > div(idAttr := "welcome-content") // `>` Add a sibling to the tag above
-  >>^ Home.content // `>>^` Add markdown content as a child, focus is kept at existing level
-  > scriptTag( tpe := "module", src := "/src/main.ts") // `>` Add a sibling script tag
+    >> div(idAttr := "app") // `>>` Add a div with id "app" as a child, descend into it
+     > div(idAttr := "welcome-content") // `>` Add a sibling to the tag above
+   >>^ Home.content // `>>^` Add markdown content as a child, focus is kept at existing level
+     > scriptTag( tpe := "module", src := "/src/main.ts") // `>` Add a sibling script tag
 ```
 
 The combination of adding fragments, and building dom by descending into its children is not totally fleshed out. It is subject to change when we find a better ways to separate or clarify the two concepts.
