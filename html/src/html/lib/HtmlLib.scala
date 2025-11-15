@@ -1,6 +1,6 @@
 package html.lib
 
-import menu.Menu
+import oldmenu.Menu
 import colors.{ColorTheme}
 import tags.T.*
 import tags.Aria

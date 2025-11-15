@@ -3,7 +3,7 @@ package ex
 import tags.T
 import tags.T.*
 import html.lib.{headBlock, menuBlock}
-import html.lib.menu.*
+import html.lib.oldmenu.*
 import html.lib.colors.*
 import tagless.dsl.{given, *}
 
