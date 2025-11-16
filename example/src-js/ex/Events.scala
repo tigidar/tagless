@@ -74,7 +74,10 @@ object Events:
             e.preventDefault()
           case a: html.Anchor =>
             println(s"Anchor event: ${a.id}, ${a.className}, ${a.href}")
+            println("step 2")
+            AnchorEvents.toggleAnchorEvent(a.id)
             e.preventDefault()
+            e.stopPropagation()
           case _ =>
             println(s"Other Click event: ${e.target}")
           // e.preventDefault()

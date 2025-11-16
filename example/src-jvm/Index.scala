@@ -7,8 +7,11 @@ import html.lib.menu.*
 import html.lib.colors.*
 import tagless.dsl.{given, *}
 
+import ex.PageMap.{NavButtons, Pages}
+
 // format: off
 object Index:
+
 
   val colorScheme = ColorTheme(
     "light".theme -> "#ffffff".color,
@@ -16,19 +19,23 @@ object Index:
   )
 
   val menu = Menu(
-    MenuKey("home") -> MenuItem(Title("Home"), Url("/")),
-    MenuKey("todos") -> MenuItem(Title("Todos"), Url("/todos")),
-    MenuKey("contact") -> MenuItem(Title("Contact"), Url("/contact")),
-    MenuKey("about") -> MenuItem(Title("About"), Url("/about")),
+    MenuKey(NavButtons.homeId) -> MenuItem(Title("Home"), Url("/")),
+    MenuKey(NavButtons.todoId) -> MenuItem(Title("Todos"), Url("/todos")),
+    MenuKey(NavButtons.contactId) -> MenuItem(Title("Contact"), Url("/contact")),
+    MenuKey(NavButtons.aboutId) -> MenuItem(Title("About"), Url("/about")),
   )
 
+// format: off
   val body = 
     ~ bodyTag
       >>^ menuBlock(menu)
-      >> div(idAttr := "app")
-      > div(idAttr := "welcome-content")
-      >>^ Home.content
-      >>^ About.content
+       >> div(idAttr := "app")
+          >> div(idAttr := Pages.welcomeId)
+           >>^ Home.content
+          <^ 1
+          >> div(idAttr := Pages.aboutId, styleAttr := "display: none;")
+            >>^ About.content
+          <^ 1
       > scriptTag( tpe := "module", src := "/src/main.ts")
 
   val root = ~ htmlRootTag >> 

@@ -42,27 +42,4 @@ def headBlock(titleText: String, colorScheme: ColorTheme) =
       > linkTag(rel:= "stylesheet", href := "/css/styles.css")
       > colorSchemeMeta(colorScheme)
 
-def navItems(menu: Menu) =
-  ~ ul(idAttr := "menu-items")
-    >> menu.items.map:
-       case (key, u) => 
-         ~ li( )
-            >> a(u.title.value, idAttr := s"menu-${key}", href := u.url.value)
-
-def themeMenu =
-  ~ form(idAttr := "theme-menu", cls := "theme-menu grid-start")
-      >> label(idAttr := "theme-label", cls := "theme-label", forId := "theme-select")
-       > select( idAttr := "theme-select", cls := "theme-select", nameAttr := "theme")
-         >> option("System", value := "")
-          > option("Light", value := "light")
-          > option("Dark", value := "dark")
-          > option("Night", value := "night")
-          > option("Day", value := "day")
-          > option("Xorian", value := "xorian")
-          > option("Inverted Day", value := "inverted-day")
-
-def menuBlock(menu: Menu) =
-  ~ navTag(
-      idAttr := "menu", cls := "top-nav grid-1-3-1", Aria.label := "Primary"
-    ) >> themeMenu + navItems(menu)
 
