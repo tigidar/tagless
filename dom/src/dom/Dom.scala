@@ -67,13 +67,11 @@ final case class Ctx(
   * stack.
   */
 final case class Cursor[N <: NodeType, E <: tags.gen.Element](
-    focus: Tree.Node[Dom],
+    focus: Tree[Dom],
     stack: List[Ctx]
-){
+) {
 
   self =>
-  import Node.*
-
   import Node.*
 
   def depth: Int = stack.length
@@ -91,9 +89,9 @@ final case class Cursor[N <: NodeType, E <: tags.gen.Element](
     case _          => Nothing
 
   /** Rebuild the closed subtree whose root is the top ancestor in `stack`. */
-  def seal: Tree.Node[Dom] =
+  def seal: Tree[Dom] =
     stack.foldLeft(focus) { (child, ctx) =>
-      Tree.Node[Dom](
+      Tree[Dom](
         ctx.parent, // parent value
         ctx.left ++ (child +: ctx.right) // left … child … right
       )
@@ -113,7 +111,7 @@ final case class Cursor[N <: NodeType, E <: tags.gen.Element](
         ],
       right = Vector.empty
     )
-    val childTree: Tree.Node[Dom] = Tree.Node[Dom](child, Vector.empty)
+    val childTree: Tree[Dom] = Tree[Dom](child, Vector.empty)
     Cursor(childTree, ctx :: stack)
 
   def addChildStay[
@@ -123,23 +121,12 @@ final case class Cursor[N <: NodeType, E <: tags.gen.Element](
       ev: N =:= NormalType
   ): Cursor[N, E] =
     val p = focus
-    val tree: Tree.Node[Dom] = Tree.Node[Dom](child, Vector.empty)
+    val tree: Tree[Dom] = Tree[Dom](child, Vector.empty)
     Cursor(p.copy(children = p.children :+ tree), stack)
-    /*
-    val ctx = Ctx(
-      left = focus.children.toVector, // already Vector[Tree[Dom]]
-      parent = focus.value
-        .asInstanceOf[
-          Node[html.NormalType, tags.gen.Element]
-        ],
-      right = Vector.empty
-    )
-    val childTree: Tree.Node[Dom] = Tree.Node[Dom](child, Vector.empty)
-    Cursor(childTree, ctx :: stack)*/
 
   /** Existing behavior: add a child and move focus into that child. */
   def addChildAndEnter[N1 <: NodeType, E1 <: tags.gen.Element](
-      child: Tree.Node[Dom]
+      child: Tree[Dom]
   ): Cursor[N1, E1] =
     val parentBefore = focus
     val updatedParent =
@@ -154,11 +141,11 @@ final case class Cursor[N <: NodeType, E <: tags.gen.Element](
     Cursor(focus = child, stack = newCtx :: stack)
 
   /** New: add a child but keep focus at the parent. */
-  def addChildStay(child: Tree.Node[Dom]): Cursor[N, E] =
+  def addChildStay(child: Tree[Dom]): Cursor[N, E] =
     val p = focus
     Cursor(p.copy(children = p.children :+ child), stack)
 
-  def addChildrenStay(children: List[Tree.Node[Dom]]): Cursor[N, E] =
+  def addChildrenStay(children: List[Tree[Dom]]): Cursor[N, E] =
     val p = focus
     Cursor(p.copy(children = p.children ++ children), stack)
 
@@ -171,66 +158,63 @@ final case class Cursor[N <: NodeType, E <: tags.gen.Element](
   def addSiblingRightStay[
       N1 <: NodeType,
       E1 <: tags.gen.Element
-  ](siblings: List[Node[N1, E1]])(using
+  ](sibling: Node[N1, E1], siblings: Node[N1, E1]*)(using
       ev: NotRoot[E]
   ): Cursor[N1, E1] =
-    val trees = siblings.map(s => Tree.Node[Dom](s, Vector.empty))
+    val trees = (sibling +: siblings).map(s => Tree[Dom](s, Vector.empty))
     stack match
       case Ctx(ls, p, rs) :: up =>
         Cursor(focus, Ctx(ls, p, rs ++ trees) :: up)
       case Nil =>
-        println(focus.value)
-        println(siblings)
         throw new AssertionError(
-          """Unreachable: addSiblingRight called at root node which can not have children""""
+          "Unreachable: addSiblingRightStay called at root node which cannot have siblings"
         )
 
-  def addSiblingRightStay[
-      N1 <: NodeType,
-      E1 <: tags.gen.Element
-  ](sibling: Tree.Node[Dom])(using
+  def addSiblingRightStayTrees(sibling: Tree[Dom], siblings: Tree[Dom]*)(using
       ev: NotRoot[E]
-  ): Cursor[N1, E1] =
+  ): Cursor[N, E] =
+    val trees = sibling +: siblings
     stack match
       case Ctx(ls, p, rs) :: up =>
-        Cursor(focus, Ctx(ls, p, rs :+ sibling) :: up)
+        Cursor(focus, Ctx(ls, p, rs ++ trees) :: up)
       case Nil =>
-        println(focus.value)
-        println(sibling)
         throw new AssertionError(
-          "Unreachable: addSiblingRight called at root node which can not have children"
+          "Unreachable: addSiblingRightStayTrees called at root node which cannot have siblings"
         )
 
   def addSiblingRightAndEnter[N1 <: NodeType, E1 <: tags.gen.Element](
-      siblings: Vector[Node[N1, E1]]
+      sibling: Node[N1, E1],
+      siblings: Node[N1, E1]*
   )(using ev: NotRoot[E]): Cursor[N1, E1] =
-    require(siblings.nonEmpty)
-    val trees = siblings.dropRight(1).map(s => Tree.Node[Dom](s, Vector.empty))
+    val allSiblings = sibling +: siblings
+    val trees = allSiblings.drop(1).map(s => Tree[Dom](s, Vector.empty))
     stack match
       case Ctx(ls, p, rs) :: up =>
-        // focus moves to the *last* appended sibling
-        val newFocus: Tree.Node[Dom] = Tree.Node(siblings.head, Vector.empty)
+        // focus moves to the first sibling
+        val newFocus: Tree[Dom] = Tree(sibling, Vector.empty)
 
         // everything to the left of the new focus:
-        //   existing left  ++ current focus ++ existing right ++ all new siblings except the last
+        //   existing left ++ current focus ++ existing right ++ all new siblings except the first
         val newLeft = (ls :+ focus) ++ rs ++ trees
 
         Cursor(newFocus, Ctx(newLeft, p, Vector.empty) :: up)
 
       case Nil =>
         throw new AssertionError(
-          "Unreachable: addSiblingRight called at root node which cannot have siblings"
+          "Unreachable: addSiblingRightAndEnter called at root node which cannot have siblings"
         )
 
   def up: Cursor[NormalType, tags.gen.Element] =
     stack match
       case Ctx(ls, p, rs) :: upTail =>
-        val rebuilt: Tree.Node[Dom] =
-          Tree.Node[Dom](p, (ls ++ (focus +: rs)))
+        val rebuilt: Tree[Dom] =
+          Tree[Dom](p, (ls ++ (focus +: rs)))
         Cursor(rebuilt, upTail)
       case Nil =>
         throw new AssertionError(
-          "Unreachable: up called at root node which has no parent"
+          s"""Unreachable: up called at root node which has no parent:
+          focus=${focus.value}
+          Stack is probably empty? $stack"""
         )
 
   def upN(n: Int): Cursor[NormalType, tags.gen.Element] =
@@ -246,13 +230,13 @@ final case class Cursor[N <: NodeType, E <: tags.gen.Element](
 
   def resultTree: Tree[Dom] =
     @annotation.tailrec
-    def go(cur: Tree.Node[Dom], stk: List[Ctx]): Tree[Dom] =
+    def go(cur: Tree[Dom], stk: List[Ctx]): Tree[Dom] =
       stk match
         case Nil =>
           cur
         case Ctx(ls, p, rs) :: up =>
           // Rebuild the parent by putting the current focus between its left/right siblings
-          val rebuilt: Tree.Node[Dom] = Tree.Node[Dom](p, ls ++ (cur +: rs))
+          val rebuilt: Tree[Dom] = Tree[Dom](p, ls ++ (cur +: rs))
           go(rebuilt, up)
 
     go(focus, stack)
@@ -260,11 +244,10 @@ final case class Cursor[N <: NodeType, E <: tags.gen.Element](
   def debug: String =
     s"""Cursor(depth=$depth, focus=${focus.value}, children=${focus.children.length})"""
 
-
 }
 
 object CursorExtensions {
-  
+
   import tags.setters.{
     Setter,
     HtmlAttrSetter,
@@ -303,7 +286,7 @@ object CursorExtensions {
       if t.void then Node.VoidElement(t.domName, attributes.toList)
       else Node.Element(t.domName, attributes.toList)
   }
-  
+
   given [E <: tags.gen.Element, N <: tags.gen.NodeType]
       : Conversion[tags.gen.HtmlTag[E, N], Node[ToHtmlNodeType[N], E]] with
     def apply(htmlTag: tags.gen.HtmlTag[E, N]): Node[ToHtmlNodeType[N], E] =
@@ -320,15 +303,14 @@ object Cursor {
 
   import CursorExtensions.{*, given}
 
-
   inline def apply[N <: NodeType, E <: tags.gen.Element](
       root: Node[N, E]
   ): Cursor[N, E] =
-    Cursor(Tree.Node(root, Vector.empty), List.empty)
+    Cursor(Tree(root, Vector.empty), List.empty)
 
   inline def root: Cursor[NormalType, tags.gen.HTMLBaseElement] =
     Cursor(
-      focus = Tree.Node(Node.Element("html"), Vector.empty),
+      focus = Tree(Node.Element("html"), Vector.empty),
       stack = List.empty
     )
 

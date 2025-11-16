@@ -1,19 +1,22 @@
 package ex
 
 import com.raquo.airstream.eventbus.EventBus
-import com.raquo.airstream.core.Observer
+import com.raquo.airstream.core.{Observer, EventStream, Signal}
 import com.raquo.airstream.ownership.{Owner, ManualOwner}
 import org.scalajs.dom
 import org.scalajs.dom.html.Body
 import scala.scalajs.js.JSON
 import com.raquo.airstream.web.DomEventStream
 import org.scalajs.dom.html
+import scala.scalajs.js
 
 object Events:
 
   val valuesEventBus = new EventBus[Int]
   val labelsEventBus = new EventBus[String]
   given owner: Owner = ManualOwner.apply()
+
+  val anchorEvents = AnchorEvents()
 
   inline def get(id: String) =
     dom.document.getElementById(id)
@@ -25,9 +28,16 @@ object Events:
     DomEventStream(dom.document, "submit", useCapture = true)
 
   val clickEvents =
-    DomEventStream(dom.document, "click", useCapture = true)
+    DomEventStream(
+      dom.document.getElementById("navbar"),
+      "click",
+      useCapture = false
+    )
 
+// owner.killSubscriptions() when tearing down
   def init() =
+
+    // val s = toggleStream.addObserver(Observer(_ => ()))(using owner)
 
     // valuesEventBus.emit(e.clientX)
     // labelsEventBus.emit(s"X: ${e.clientX}, Y: ${e.clientY}")
@@ -73,8 +83,10 @@ object Events:
             println(s"Button event: ${b.id}, ${b.className}, ${b.value}")
             e.preventDefault()
           case a: html.Anchor =>
-            println(s"Anchor event: ${a.id}, ${a.className}, ${a.href}")
+            anchorEvents.submit(a)
             e.preventDefault()
+            e.stopPropagation()
+
           case _ =>
             println(s"Other Click event: ${e.target}")
           // e.preventDefault()

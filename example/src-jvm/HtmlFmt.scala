@@ -32,7 +32,7 @@ object HtmlFmt:
   /** Format then write to disk (overwrites). */
   def formatHtmlToFile(html: String, outPath: os.Path): Unit =
     val pretty = formatHtml(html)
-    // println(pretty)
-    // println(outPath)
+    println(pretty)
+    println(outPath)
     os.makeDir.all(outPath / os.up) // ensure parent dir
     os.write.over(outPath, pretty)

@@ -56,19 +56,3 @@ enum Markdown derives CanEqual:
 object Markdown:
   def ^ = Markdown.Init
 
-import Markdown.{*, given}
-//import html.dsl.{*, given}
-import tags.T.*
-
-@main def run(): Unit =
-  val x = Markdown.^
-     <# "Header 1"
-      < "this is some paragraph info:"
-     <* "bullet 1"
-     <* "bullet 2"
-    <## "Header 2"
-      < "this is some paragraph text in Header2"
-      <+ "numbered bullet 1"
-      <+ "numbered bullet 2"
-      < "this is another paragraph"
-

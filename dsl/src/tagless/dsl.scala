@@ -9,7 +9,17 @@ import tags.setters.{
   TailwindAttrSetter,
   AriaAttrSetter
 }
-import dom.{Node, AttrNode, Dom, Cursor, Tree, NormalType, VoidType, NodeType, NotRoot}
+import dom.{
+  Node,
+  AttrNode,
+  Dom,
+  Cursor,
+  Tree,
+  NormalType,
+  VoidType,
+  NodeType,
+  NotRoot
+}
 
 object dsl:
 
@@ -52,7 +62,7 @@ object dsl:
     def >>[N1 <: NodeType, E1 <: tags.gen.Element](
         node: Node[N1, E1]
     ): Cursor[N1, E1] =
-      c.addChild[N1, E1](node)
+      c.addChildAndEnter[N1, E1](Tree(node, Vector.empty))
 
     def >>(rep: Repeated): Cursor[NormalType, E] =
       c.addChildrenStay(List.fill(rep.times)(rep.fragment.root))
@@ -72,7 +82,7 @@ object dsl:
         conv: ToTrees[A]
     ): Cursor[NormalType, E] =
       c.addChildrenStay(conv(xs.iterator.to(List)))
-    
+
     def >>^(m: md.Markdown): Cursor[NormalType, E] =
       md.MarkdownConverter.build(m, c)
   }
@@ -80,36 +90,41 @@ object dsl:
   extension [N <: NodeType, E <: tags.gen.Element](c: Cursor[N, E]) {
 
     def >^[N1 <: NodeType, E1 <: tags.gen.Element](
-        node: Node[N1, E1]
+        sibling: Node[N1, E1],
+        siblings: Node[N1, E1]*
     )(using
         ev: NotRoot[E]
     ): Cursor[N1, E1] =
-      c.addSiblingRightStay[N1, E1](List(node))
+      c.addSiblingRightStay[N1, E1](sibling, siblings*)
 
+    /** Add siblings from a sequence and stay at current focus */
     def >^[N1 <: NodeType, E1 <: tags.gen.Element](
-        siblings: List[Node[N1, E1]]
+        siblings: Iterable[Node[N1, E1]]
     )(using
         ev: NotRoot[E]
     ): Cursor[N1, E1] =
-      c.addSiblingRightStay[N1, E1](siblings)
-
-
-    def >[N1 <: NodeType, E1 <: tags.gen.Element](
-        node: Node[N1, E1]
-    )(using
-        ev: NotRoot[E]
-    ): Cursor[N1, E1] =
-      c.addSiblingRightAndEnter[N1, E1](Vector(node))
+      val seq = siblings.toSeq
+      c.addSiblingRightStay[N1, E1](seq.head, seq.tail*)
 
     def >[N1 <: NodeType, E1 <: tags.gen.Element](
-        siblings: Vector[Node[N1, E1]]
+        sibling: Node[N1, E1],
+        siblings: Node[N1, E1]*
     )(using
         ev: NotRoot[E]
     ): Cursor[N1, E1] =
-      c.addSiblingRightAndEnter[N1, E1](siblings)
+      c.addSiblingRightAndEnter[N1, E1](sibling, siblings*)
+
+    /** Add siblings from a sequence and move focus to first */
+    def >[N1 <: NodeType, E1 <: tags.gen.Element](
+        siblings: Iterable[Node[N1, E1]]
+    )(using
+        ev: NotRoot[E]
+    ): Cursor[N1, E1] =
+      val seq = siblings.toSeq
+      c.addSiblingRightAndEnter[N1, E1](seq.head, seq.tail*)
 
     /** Converting two standalone html snippets (cursors) into a list of
-      * Tree.Nodes, this is useful when you need to these as siblings in one
+      * Trees, this is useful when you need to these as siblings in one
       * step, to the current cursor position.
       *
       * @param N1
@@ -122,7 +137,7 @@ object dsl:
         siblingCursor: Cursor[N1, E1]
     )(using
         ev: NotRoot[E]
-    ): List[Tree.Node[Dom]] =
+    ): List[Tree[Dom]] =
       List(c.seal, siblingCursor.seal)
 
     def <^(i: Int): Cursor[NormalType, tags.gen.Element] =
@@ -142,7 +157,6 @@ object dsl:
         if htmlTag.void then Node.VoidElement(htmlTag.domName)
         else Node.Element(htmlTag.domName)
 
-
   given [A <: tags.gen.SVGElement]: Conversion[tags.gen.SvgTag[A], Dom] with
     def apply(svgTag: tags.gen.SvgTag[A]): Dom = Node.Element(svgTag.domName)
 
@@ -153,4 +167,3 @@ object dsl:
       : Conversion[Cursor[N, E], Fragment] with
     def apply(cursor: Cursor[N, E]): Fragment =
       Fragment(cursor.seal)
-

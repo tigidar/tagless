@@ -1,4 +1,4 @@
-//| mill-version: 1.0.5
+//| mill-version: 1.0.6
 //| mvnDeps: [ "com.lihaoyi::mill-contrib-buildinfo:$MILL_VERSION", "org.typelevel::scalac-options:0.1.8" ]
 
 package build
@@ -73,6 +73,10 @@ trait Shared extends CrossScalaModule, PlatformScalaModule {
 
   override def scalacOptions = Task {
     super.scalacOptions() ++ Seq("-language:implicitConversions") ++ Config.compilerOptions
+  }
+
+  object shared extends CommonSettings {
+    override def mvnDeps = super.mvnDeps() 
   }
 }
 
@@ -150,24 +154,44 @@ object dom extends Module {
 
 object html extends  Module {
 
+  def deps = Seq(
+    Lihaoyi.sourcecode
+  )
+
   trait JvmModule extends Shared {
 
-    def moduleDeps = Seq(dsl.jvm())
+    def moduleDeps = Seq(dsl.jvm(), shared)
+    override def mvnDeps = super.mvnDeps() ++ deps 
 
     object test extends ScalaTests, CommonTestConfig 
   }
 
   object jvm extends Cross[JvmModule](scalaVersions) {}
 
-  trait JsModule extends Js {
-    override def mvnDeps = super.mvnDeps() ++ Seq(
-    )
-    def moduleDeps = Seq(dsl.js())
+  trait JsModule extends Shared, Js {
+    override def mvnDeps = super.mvnDeps() ++ deps 
+    def moduleDeps = Seq()
   }
 
   object js extends Cross[JsModule](scalaVersions) {
     def moduleDeps = Seq()
   }
+
+}
+/* html module should only contain typesafe shared models and id's with the jvm
+ * If you want full dsl for js use this module, html-js-extensions
+ */
+object `html-js-extensions` extends  Module {
+
+  trait JsModule extends Js {
+    override def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn"com.raquo::airstream::17.2.1",
+      mvn"org.scala-js::scalajs-dom::2.8.0"
+    )
+    def moduleDeps = Seq(dsl.js()) 
+  }
+
+  object js extends Cross[JsModule](scalaVersions)
 
 }
 
@@ -247,10 +271,10 @@ object example extends Module {
       mvn"com.raquo::airstream::17.2.1",
       mvn"org.scala-js::scalajs-dom::2.8.0"
     )
+    override def moduleDeps = Seq(html.js())
   }
 
   object js extends Cross[JsModule](scalaVersions) {
-    def moduleDeps = Seq()
   }
 
 }
