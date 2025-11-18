@@ -537,3 +537,7 @@ td {
   background: var(--scrollbar-thumb);
   border-radius: var(--radius-round);
 }
+
+.is-hidden {
+  display: none !important;
+}

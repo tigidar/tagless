@@ -1,7 +1,7 @@
 package ex
 
 import com.raquo.airstream.eventbus.EventBus
-import com.raquo.airstream.core.Observer
+import com.raquo.airstream.core.{Observer, EventStream}
 import com.raquo.airstream.ownership.{Owner, ManualOwner}
 import org.scalajs.dom
 import org.scalajs.dom.html.Body
@@ -27,7 +27,46 @@ object Events:
   val clickEvents =
     DomEventStream(dom.document, "click", useCapture = true)
 
+  // Map global clicks to *content ids* we own, prevent navigation
+  val contentIds: EventStream[String] =
+    clickEvents
+      .map(_.asInstanceOf[dom.MouseEvent])
+      .map { e =>
+        val el = e.target.asInstanceOf[dom.Element]
+        Option(el.closest("a[id]")).collect { case a: dom.HTMLAnchorElement =>
+          (e, a)
+        }
+      }
+      .collect { case Some((e, a)) =>
+        val newTab =
+          a.target == "_blank" || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button == 1
+        if (!newTab) { e.preventDefault(); e.stopPropagation(); a.id }
+        else null
+      }
+      .filter(_ != null)
+      .collect(AnchorEvents.router) // anchor-id -> content-id
+      .distinct
+
+  // TODO: investigate if this actually works as intended!!!
+  def pairwise[A](s: EventStream[A]): EventStream[(Option[A], A)] = ???
+  s.scanLeft[(Option[A], Option[A])]((None, None)) { case ((_, last), cur) =>
+    (last, Some(cur))
+  }.flatMapSwitch {
+    case (Some(prev), Some(cur)) => EventStream.fromValue((Some(prev), cur))
+    case (None, Some(cur))       => EventStream.fromValue((None, cur))
+    case _                       => EventStream.empty
+  }
+
+  val toggleStream: EventStream[Unit] =
+    pairwise(contentIds).map { case (prevOpt, cur) =>
+      prevOpt.foreach(hideDiv) // deactivate previous (if any)
+      showDiv(cur) // activate current
+    }
+
+// owner.killSubscriptions() when tearing down
   def init() =
+
+    val s = toggleStream.addObserver(Observer(_ => ()))(using owner)
 
     // valuesEventBus.emit(e.clientX)
     // labelsEventBus.emit(s"X: ${e.clientX}, Y: ${e.clientY}")

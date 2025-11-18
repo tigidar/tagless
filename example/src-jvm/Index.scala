@@ -30,10 +30,10 @@ object Index:
     ~ bodyTag
       >>^ menuBlock(menu)
        >> div(idAttr := "app")
-          >> div(idAttr := Pages.welcomeId)
+          >> div(idAttr := Pages.welcomeId, cls := "is-hidden")
            >>^ Home.content
           <^ 1
-          >> div(idAttr := Pages.aboutId, styleAttr := "display: none;")
+          >> div(idAttr := Pages.aboutId, cls := "is-hidden")
             >>^ About.content
           <^ 1
       > scriptTag( tpe := "module", src := "/src/main.ts")
