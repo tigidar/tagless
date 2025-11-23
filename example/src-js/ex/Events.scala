@@ -48,14 +48,14 @@ object Events:
       .distinct
 
   // TODO: investigate if this actually works as intended!!!
-  def pairwise[A](s: EventStream[A]): EventStream[(Option[A], A)] = ???
-  s.scanLeft[(Option[A], Option[A])]((None, None)) { case ((_, last), cur) =>
-    (last, Some(cur))
-  }.flatMapSwitch {
-    case (Some(prev), Some(cur)) => EventStream.fromValue((Some(prev), cur))
-    case (None, Some(cur))       => EventStream.fromValue((None, cur))
-    case _                       => EventStream.empty
-  }
+  def pairwise[A](s: EventStream[A]): EventStream[(Option[A], A)] =
+    s.scanLeft[(Option[A], Option[A])]((None, None)) { case ((_, last), cur) =>
+      (last, Some(cur))
+    }.flatMapSwitch {
+      case (Some(prev), Some(cur)) => EventStream.fromValue((Some(prev), cur))
+      case (None, Some(cur))       => EventStream.fromValue((None, cur))
+      case _                       => EventStream.empty
+    }
 
   val toggleStream: EventStream[Unit] =
     pairwise(contentIds).map { case (prevOpt, cur) =>
