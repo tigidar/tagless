@@ -11,111 +11,71 @@ sealed trait H extends TableState
 sealed trait B extends TableState
 sealed trait F extends TableState
 
-final case class Col(cssClassName: String, span: Option[String] = None)
-final case class Cell(content: String, width: Option[Int] = None)
+extension (i: Table.Init.type)
+  def --(value: String): Table.Caption =
+    Table.Caption(value)
 
-enum Table[S <: TableState] derives CanEqual:
-  self =>
-  case Init extends Table[I]
-  case Caption(value: String) extends Table[C]
-  case ColGroup(col: List[Col]) extends Table[CG]
-  case HRow[S1 <: TableState](cells: Vector[Cell]) extends Table[S1]
-  case Row[S1 <: TableState](cells: Vector[Cell]) extends Table[S1]
-  case Head(rows: Vector[HRow[S]], caption: Option[Caption]) extends Table[H]
-  case Body(rows: Vector[Row[S]], h: Option[Head[H]], caption: Option[Caption])
-      extends Table[B]
-  case Foot(rows: Vector[Row[S]]) extends Table[F]
-  case Append(l: Table[S], r: Table[S])
+extension (h: Table.Head)
+  def |+(value: String): Table.Head =
+    Table.Head(h.rows :+ Table.HRow(Vector(Col(value))), h.caption)
 
-  def --(captionId: String)(using ev: S =:= I): Table[C] =
-    Caption(captionId)
-
-  // only on Init OR Caption
-  type PreHead = I | C
-
-  def getCaption: Option[Caption] = self match
-    case c: Caption => Some(c)
-    case _          => None
-
-  def -|(using ev: S <:< PreHead)(id: String): Table.Head[H] =
-    Head(Vector(HRow(Vector(Cell(id)))), getCaption)
-
-  def +|(id: String): Table.Body[B] =
-    Table.Body(Vector(Table.Row(Vector(Cell(id)))), None, getCaption)
-
-extension [S1 <: TableState](r: Table.Row[S1])
-  def +(c: Cell): Table.Row[S1] = r.copy(
-    cells = r.cells :+ c
-  )
-
-extension (h: Table.Head[H])
-
-  def +(id: String): Table.Head[H] =
-    Table.Head(h.rows :+ Table.HRow(Vector(Cell(id))), h.caption)
-
-  def |(id: String): Table.Head[H] =
+  def |(value: String): Table.Head =
     val r = h.rows.last
-    val cells = r.cells :+ Cell(id)
+    val cols = r.columns :+ Col(value)
     h.copy(
-      rows = h.rows.dropRight(1) :+ Table.HRow(cells)
+      rows = h.rows.dropRight(1) :+ Table.HRow(cols)
     )
 
-  def ||(id: String): Table.Body[B] =
-    Table.Body(Vector(Table.Row(Vector(Cell(id)))), Some(h), None)
+extension (b: Table.Body)
+  def |+(value: String): Table.Body =
+    Table.Body(b.rows :+ Table.Row(Vector(Cell(value))), b.head, b.caption)
 
-extension (b: Table.Body[B])
-  def +(id: String): Table.Body[B] =
-    b.copy(rows = b.rows :+ Table.Row(Vector(Cell(id))))
-
-  def |(id: String): Table.Body[B] =
+  def |(value: String): Table.Body =
     val r = b.rows.last
-    val cells = r.cells :+ Cell(id)
+    val cells = r.cells :+ Cell(value)
     b.copy(
       rows = b.rows.dropRight(1) :+ Table.Row(cells)
     )
 
+final case class Col(text: String, span: Option[String] = None)
+final case class Cell(content: String, width: Option[Int] = None)
+
+enum Table derives CanEqual:
+  self =>
+  case Init
+  case Caption(value: String)
+  case HRow(columns: Vector[Col])
+  case Head(rows: Vector[HRow], caption: Option[Caption] = None)
+  case Row(cells: Vector[Cell])
+  case Body(
+      rows: Vector[Row],
+      head: Option[Head] = None,
+      caption: Option[Caption] = None
+  )
+
+  def |-(value: String): Table.Head =
+    self match
+      case Init => Table.Head(Vector(HRow(Vector(Col(value)))), None)
+      case Caption(value) =>
+        Table.Head(Vector(HRow(Vector(Col(value)))), Some(Caption(value)))
+      case _ => throw new Exception(s"Invalid state for |- operator: $self")
+
+  def ||(value: String): Table.Head = self match
+    case h: Table.Head =>
+      Table.Head(h.rows :+ HRow(Vector(Col(value))), h.caption)
+    case _ => throw new Exception(s"Invalid state for |* operator: $self")
+
 object Table:
 
-  def ^ = Table.Init
+  def ^ : Table.Init.type = Table.Init
 
-  def renderTable[S <: TableState](fullTable: Table[S]): String = ???
-
-  // format: off
 object Test:
 
   def t = Table.^
     -- "Caption for some table"
-    -| "td00"  | "td01"  | "td02"
-     + "td10"  | "td11"  | "td12"
-    || "col00" | "col01" | "col02"
-     + "col10" | "col11" | "col12"
-     + "col20" | "col21" | "col22"
-     + "col30" | "col31" | "col32"
-     + "col40" | "col41" | "col42"
-
-
-  def t2 = Table.^
-    -- "Caption two"
-    +| "col00" | "col01" | "col02"
-     + "col10" | "col11" | "col12"
-     + "col20" | "col21" | "col22"
-     + "col30" | "col31" | "col32"
-     + "col40" | "col41" | "col42"
-
-
-  def t3 = Table.^
-    +| "col00" | "col01" | "col02"
-     + "col10" | "col11" | "col12"
-     + "col20" | "col21" | "col22"
-     + "col30" | "col31" | "col32"
-     + "col40" | "col41" | "col42"
-
-  def t4 = Table.^
-    -| "td00"  | "td01"  | "td02"
-     + "td10"  | "td11"  | "td12"
-    || "col00" | "col01" | "col02"
-     + "col10" | "col11" | "col12"
-     + "col20" | "col21" | "col22"
-     + "col30" | "col31" | "col32"
-     + "col40" | "col41" | "col42"
-
+    |- "td00" | "td01" | "td02"
+    |+ "td10" | "td11" | "td12"
+    || "td10" | "td11" | "td12"
+    |+ "td20" | "td21" | "td22"
+    |+ "td30" | "td31" | "td32"
+    || "td40" | "td41" | "td42"
