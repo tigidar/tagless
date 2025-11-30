@@ -74,6 +74,10 @@ trait Shared extends CrossScalaModule, PlatformScalaModule {
   override def scalacOptions = Task {
     super.scalacOptions() ++ Seq("-language:implicitConversions") ++ Config.compilerOptions
   }
+
+  object shared extends CommonSettings {
+    override def mvnDeps = super.mvnDeps() 
+  }
 }
 
 trait Js extends Shared, ScalaJSModule {
@@ -156,7 +160,7 @@ object html extends  Module {
 
   trait JvmModule extends Shared {
 
-    def moduleDeps = Seq(dsl.jvm())
+    def moduleDeps = Seq(dsl.jvm(), shared)
     override def mvnDeps = super.mvnDeps() ++ deps 
 
     object test extends ScalaTests, CommonTestConfig 
@@ -164,14 +168,30 @@ object html extends  Module {
 
   object jvm extends Cross[JvmModule](scalaVersions) {}
 
-  trait JsModule extends Js {
+  trait JsModule extends Shared, Js {
     override def mvnDeps = super.mvnDeps() ++ deps 
-    def moduleDeps = Seq(dsl.js())
+    def moduleDeps = Seq()
   }
 
   object js extends Cross[JsModule](scalaVersions) {
     def moduleDeps = Seq()
   }
+
+}
+/* html module should only contain typesafe shared models and id's with the jvm
+ * If you want full dsl for js use this module, html-js-extensions
+ */
+object `html-js-extensions` extends  Module {
+
+  trait JsModule extends Js {
+    override def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn"com.raquo::airstream::17.2.1",
+      mvn"org.scala-js::scalajs-dom::2.8.0"
+    )
+    def moduleDeps = Seq(dsl.js()) 
+  }
+
+  object js extends Cross[JsModule](scalaVersions)
 
 }
 

@@ -69,7 +69,7 @@ final case class Ctx(
 final case class Cursor[N <: NodeType, E <: tags.gen.Element](
     focus: Tree.Node[Dom],
     stack: List[Ctx]
-){
+) {
 
   self =>
   import Node.*
@@ -230,7 +230,9 @@ final case class Cursor[N <: NodeType, E <: tags.gen.Element](
         Cursor(rebuilt, upTail)
       case Nil =>
         throw new AssertionError(
-          "Unreachable: up called at root node which has no parent"
+          s"""Unreachable: up called at root node which has no parent:
+          focus=${focus.value}
+          Stack is probably empty? $stack"""
         )
 
   def upN(n: Int): Cursor[NormalType, tags.gen.Element] =
@@ -260,11 +262,10 @@ final case class Cursor[N <: NodeType, E <: tags.gen.Element](
   def debug: String =
     s"""Cursor(depth=$depth, focus=${focus.value}, children=${focus.children.length})"""
 
-
 }
 
 object CursorExtensions {
-  
+
   import tags.setters.{
     Setter,
     HtmlAttrSetter,
@@ -303,7 +304,7 @@ object CursorExtensions {
       if t.void then Node.VoidElement(t.domName, attributes.toList)
       else Node.Element(t.domName, attributes.toList)
   }
-  
+
   given [E <: tags.gen.Element, N <: tags.gen.NodeType]
       : Conversion[tags.gen.HtmlTag[E, N], Node[ToHtmlNodeType[N], E]] with
     def apply(htmlTag: tags.gen.HtmlTag[E, N]): Node[ToHtmlNodeType[N], E] =
@@ -319,7 +320,6 @@ object CursorExtensions {
 object Cursor {
 
   import CursorExtensions.{*, given}
-
 
   inline def apply[N <: NodeType, E <: tags.gen.Element](
       root: Node[N, E]

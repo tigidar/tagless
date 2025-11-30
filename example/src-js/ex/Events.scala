@@ -16,6 +16,8 @@ object Events:
   val labelsEventBus = new EventBus[String]
   given owner: Owner = ManualOwner.apply()
 
+  val anchorEvents = AnchorEvents()
+
   inline def get(id: String) =
     dom.document.getElementById(id)
 
@@ -81,7 +83,7 @@ object Events:
             println(s"Button event: ${b.id}, ${b.className}, ${b.value}")
             e.preventDefault()
           case a: html.Anchor =>
-            AnchorEvents.submit(a)
+            anchorEvents.submit(a)
             e.preventDefault()
             e.stopPropagation()
 

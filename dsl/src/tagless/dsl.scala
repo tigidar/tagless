@@ -9,7 +9,17 @@ import tags.setters.{
   TailwindAttrSetter,
   AriaAttrSetter
 }
-import dom.{Node, AttrNode, Dom, Cursor, Tree, NormalType, VoidType, NodeType, NotRoot}
+import dom.{
+  Node,
+  AttrNode,
+  Dom,
+  Cursor,
+  Tree,
+  NormalType,
+  VoidType,
+  NodeType,
+  NotRoot
+}
 
 object dsl:
 
@@ -52,7 +62,7 @@ object dsl:
     def >>[N1 <: NodeType, E1 <: tags.gen.Element](
         node: Node[N1, E1]
     ): Cursor[N1, E1] =
-      c.addChild[N1, E1](node)
+      c.addChildAndEnter[N1, E1](Tree.Node(node, Vector.empty))
 
     def >>(rep: Repeated): Cursor[NormalType, E] =
       c.addChildrenStay(List.fill(rep.times)(rep.fragment.root))
@@ -72,7 +82,7 @@ object dsl:
         conv: ToTrees[A]
     ): Cursor[NormalType, E] =
       c.addChildrenStay(conv(xs.iterator.to(List)))
-    
+
     def >>^(m: md.Markdown): Cursor[NormalType, E] =
       md.MarkdownConverter.build(m, c)
   }
@@ -92,7 +102,6 @@ object dsl:
         ev: NotRoot[E]
     ): Cursor[N1, E1] =
       c.addSiblingRightStay[N1, E1](siblings)
-
 
     def >[N1 <: NodeType, E1 <: tags.gen.Element](
         node: Node[N1, E1]
@@ -142,7 +151,6 @@ object dsl:
         if htmlTag.void then Node.VoidElement(htmlTag.domName)
         else Node.Element(htmlTag.domName)
 
-
   given [A <: tags.gen.SVGElement]: Conversion[tags.gen.SvgTag[A], Dom] with
     def apply(svgTag: tags.gen.SvgTag[A]): Dom = Node.Element(svgTag.domName)
 
@@ -153,4 +161,3 @@ object dsl:
       : Conversion[Cursor[N, E], Fragment] with
     def apply(cursor: Cursor[N, E]): Fragment =
       Fragment(cursor.seal)
-
