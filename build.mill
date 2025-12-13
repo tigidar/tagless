@@ -1,4 +1,4 @@
-//| mill-version: 1.0.5
+//| mill-version: 1.0.6
 //| mvnDeps: [ "com.lihaoyi::mill-contrib-buildinfo:$MILL_VERSION", "org.typelevel::scalac-options:0.1.8" ]
 
 package build
