@@ -10,14 +10,14 @@ trait ToTrees[A]:
 
 object ToTrees:
   given ToTrees[Fragment] with
-    def apply(xs: List[Fragment]) = xs.map(_.root)
+    def apply(xs: List[Fragment]): List[Tree.Node[Dom]] = xs.map(_.root)
 
   given ToTrees[Dom] with
-    def apply(xs: List[Dom]) = xs.map(d => Tree.Node[Dom](d, Vector.empty))
+    def apply(xs: List[Dom]): List[Tree.Node[Dom]] =
+      xs.map(d => Tree.Node[Dom](d, Vector.empty))
 
   given identity: ToTrees[Tree.Node[Dom]] with
-    inline def apply(xs: List[Tree.Node[Dom]]) = xs
+    inline def apply(xs: List[Tree.Node[Dom]]): List[Tree.Node[Dom]] = xs
 
-  given forCursor[N <: NodeType, E <: tags.gen.Element]: ToTrees[Cursor[N, E]]
-  with
-    def apply(xs: List[Cursor[N, E]]) = xs.map(_.seal)
+  given forCursor[N <: NodeType, E <: tags.gen.Element]: ToTrees[Cursor[N, E]] with
+    def apply(xs: List[Cursor[N, E]]): List[Tree.Node[Dom]] = xs.map(_.seal)

@@ -74,8 +74,6 @@ final case class Cursor[N <: NodeType, E <: tags.gen.Element](
   self =>
   import Node.*
 
-  import Node.*
-
   def depth: Int = stack.length
 
   def isRoot: Boolean = stack.isEmpty
