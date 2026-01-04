@@ -90,32 +90,38 @@ object dsl:
   extension [N <: NodeType, E <: tags.gen.Element](c: Cursor[N, E]) {
 
     def >^[N1 <: NodeType, E1 <: tags.gen.Element](
-        node: Node[N1, E1]
+        sibling: Node[N1, E1],
+        siblings: Node[N1, E1]*
     )(using
         ev: NotRoot[E]
     ): Cursor[N1, E1] =
-      c.addSiblingRightStay[N1, E1](List(node))
+      c.addSiblingRightStay[N1, E1](sibling, siblings*)
 
+    /** Add siblings from a sequence and stay at current focus */
     def >^[N1 <: NodeType, E1 <: tags.gen.Element](
-        siblings: List[Node[N1, E1]]
+        siblings: Iterable[Node[N1, E1]]
     )(using
         ev: NotRoot[E]
     ): Cursor[N1, E1] =
-      c.addSiblingRightStay[N1, E1](siblings)
+      val seq = siblings.toSeq
+      c.addSiblingRightStay[N1, E1](seq.head, seq.tail*)
 
     def >[N1 <: NodeType, E1 <: tags.gen.Element](
-        node: Node[N1, E1]
+        sibling: Node[N1, E1],
+        siblings: Node[N1, E1]*
     )(using
         ev: NotRoot[E]
     ): Cursor[N1, E1] =
-      c.addSiblingRightAndEnter[N1, E1](Vector(node))
+      c.addSiblingRightAndEnter[N1, E1](sibling, siblings*)
 
+    /** Add siblings from a sequence and move focus to first */
     def >[N1 <: NodeType, E1 <: tags.gen.Element](
-        siblings: Vector[Node[N1, E1]]
+        siblings: Iterable[Node[N1, E1]]
     )(using
         ev: NotRoot[E]
     ): Cursor[N1, E1] =
-      c.addSiblingRightAndEnter[N1, E1](siblings)
+      val seq = siblings.toSeq
+      c.addSiblingRightAndEnter[N1, E1](seq.head, seq.tail*)
 
     /** Converting two standalone html snippets (cursors) into a list of
       * Trees, this is useful when you need to these as siblings in one

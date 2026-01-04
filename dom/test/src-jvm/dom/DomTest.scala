@@ -263,29 +263,36 @@ class CursorSiblingOperationsTest extends FunSuite:
   def divNode: Node[NormalType, tags.gen.HTMLDivElement] =
     Node.Element("div")
 
-  test("addSiblingRightStay with list adds siblings to right"):
+  test("addSiblingRightStay adds sibling to right"):
     val root = Cursor(divNode)
     val child =
       root.addChild(Node.Element[NormalType, tags.gen.HTMLSpanElement]("span"))
 
     val withSiblings = child.addSiblingRightStay(
-      List(
-        Node.Element[NormalType, tags.gen.HTMLParagraphElement]("p")
-      )
+      Node.Element[NormalType, tags.gen.HTMLParagraphElement]("p")
     )
 
     assertEquals(withSiblings.stack.head.right.length, 1)
 
-  test("addSiblingRightStay with Tree adds sibling to right"):
+  test("addSiblingRightStay with multiple siblings"):
+    val root = Cursor(divNode)
+    val child =
+      root.addChild(Node.Element[NormalType, tags.gen.HTMLSpanElement]("span"))
+
+    val withSiblings = child.addSiblingRightStay(
+      Node.Element[NormalType, tags.gen.HTMLParagraphElement]("p"),
+      Node.Element[NormalType, tags.gen.HTMLAnchorElement]("a")
+    )
+
+    assertEquals(withSiblings.stack.head.right.length, 2)
+
+  test("addSiblingRightStayTrees with Tree adds sibling to right"):
     val root = Cursor(divNode)
     val child =
       root.addChild(Node.Element[NormalType, tags.gen.HTMLSpanElement]("span"))
     val siblingTree = Tree[Dom](Node.Element("p"), Vector.empty)
 
-    val withSibling =
-      child.addSiblingRightStay[NormalType, tags.gen.HTMLParagraphElement](
-        siblingTree
-      )
+    val withSibling = child.addSiblingRightStayTrees(siblingTree)
 
     assertEquals(withSibling.stack.head.right.length, 1)
 
@@ -295,21 +302,19 @@ class CursorSiblingOperationsTest extends FunSuite:
       root.addChild(Node.Element[NormalType, tags.gen.HTMLSpanElement]("span"))
 
     val withSiblings = child.addSiblingRightStay(
-      List(
-        Node.Element[NormalType, tags.gen.HTMLParagraphElement]("p")
-      )
+      Node.Element[NormalType, tags.gen.HTMLParagraphElement]("p")
     )
 
     assertEquals(getTag(withSiblings.focus.value), "span")
 
-  test("addSiblingRightAndEnter adds siblings and moves focus"):
+  test("addSiblingRightAndEnter adds sibling and moves focus"):
     val root = Cursor(divNode)
     val child =
       root.addChild(Node.Element[NormalType, tags.gen.HTMLSpanElement]("span"))
 
     val moved =
       child.addSiblingRightAndEnter[NormalType, tags.gen.HTMLParagraphElement](
-        Vector(Node.Element("p"))
+        Node.Element("p")
       )
 
     assertEquals(getTag(moved.focus.value), "p")
@@ -321,7 +326,7 @@ class CursorSiblingOperationsTest extends FunSuite:
 
     val moved =
       child.addSiblingRightAndEnter[NormalType, tags.gen.HTMLParagraphElement](
-        Vector(Node.Element("p"))
+        Node.Element("p")
       )
 
     assert(moved.stack.head.left.nonEmpty)
@@ -379,9 +384,7 @@ class CursorSealAndResultTreeTest extends FunSuite:
     val child1 =
       root.addChild(Node.Element[NormalType, tags.gen.HTMLSpanElement]("span"))
     val withSibling = child1.addSiblingRightStay(
-      List(
-        Node.Element[NormalType, tags.gen.HTMLParagraphElement]("p")
-      )
+      Node.Element[NormalType, tags.gen.HTMLParagraphElement]("p")
     )
 
     val tree = withSibling.resultTree
@@ -460,13 +463,17 @@ class CursorEdgeCasesTest extends FunSuite:
 
     assertEquals(result.focus.children.length, 3)
 
-  test("addSiblingRightAndEnter requires non-empty siblings"):
+  test("addSiblingRightAndEnter with multiple siblings"):
     val root = Cursor(divNode)
     val child =
       root.addChild(Node.Element[NormalType, tags.gen.HTMLSpanElement]("span"))
 
-    intercept[IllegalArgumentException] {
-      child.addSiblingRightAndEnter[NormalType, tags.gen.HTMLParagraphElement](
-        Vector.empty
-      )
-    }
+    val moved = child.addSiblingRightAndEnter(
+      Node.Element[NormalType, tags.gen.HTMLParagraphElement]("p"),
+      Node.Element[NormalType, tags.gen.HTMLAnchorElement]("a")
+    )
+
+    // Focus should be on the first sibling
+    assertEquals(getTag(moved.focus.value), "p")
+    // The second sibling should be to the right
+    assertEquals(moved.stack.head.left.length, 2) // span and a are to the left

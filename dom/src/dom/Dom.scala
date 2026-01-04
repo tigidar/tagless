@@ -158,55 +158,50 @@ final case class Cursor[N <: NodeType, E <: tags.gen.Element](
   def addSiblingRightStay[
       N1 <: NodeType,
       E1 <: tags.gen.Element
-  ](siblings: List[Node[N1, E1]])(using
+  ](sibling: Node[N1, E1], siblings: Node[N1, E1]*)(using
       ev: NotRoot[E]
   ): Cursor[N1, E1] =
-    val trees = siblings.map(s => Tree[Dom](s, Vector.empty))
+    val trees = (sibling +: siblings).map(s => Tree[Dom](s, Vector.empty))
     stack match
       case Ctx(ls, p, rs) :: up =>
         Cursor(focus, Ctx(ls, p, rs ++ trees) :: up)
       case Nil =>
-        println(focus.value)
-        println(siblings)
         throw new AssertionError(
-          """Unreachable: addSiblingRight called at root node which can not have children""""
+          "Unreachable: addSiblingRightStay called at root node which cannot have siblings"
         )
 
-  def addSiblingRightStay[
-      N1 <: NodeType,
-      E1 <: tags.gen.Element
-  ](sibling: Tree[Dom])(using
+  def addSiblingRightStayTrees(sibling: Tree[Dom], siblings: Tree[Dom]*)(using
       ev: NotRoot[E]
-  ): Cursor[N1, E1] =
+  ): Cursor[N, E] =
+    val trees = sibling +: siblings
     stack match
       case Ctx(ls, p, rs) :: up =>
-        Cursor(focus, Ctx(ls, p, rs :+ sibling) :: up)
+        Cursor(focus, Ctx(ls, p, rs ++ trees) :: up)
       case Nil =>
-        println(focus.value)
-        println(sibling)
         throw new AssertionError(
-          "Unreachable: addSiblingRight called at root node which can not have children"
+          "Unreachable: addSiblingRightStayTrees called at root node which cannot have siblings"
         )
 
   def addSiblingRightAndEnter[N1 <: NodeType, E1 <: tags.gen.Element](
-      siblings: Vector[Node[N1, E1]]
+      sibling: Node[N1, E1],
+      siblings: Node[N1, E1]*
   )(using ev: NotRoot[E]): Cursor[N1, E1] =
-    require(siblings.nonEmpty)
-    val trees = siblings.dropRight(1).map(s => Tree[Dom](s, Vector.empty))
+    val allSiblings = sibling +: siblings
+    val trees = allSiblings.drop(1).map(s => Tree[Dom](s, Vector.empty))
     stack match
       case Ctx(ls, p, rs) :: up =>
-        // focus moves to the *last* appended sibling
-        val newFocus: Tree[Dom] = Tree(siblings.head, Vector.empty)
+        // focus moves to the first sibling
+        val newFocus: Tree[Dom] = Tree(sibling, Vector.empty)
 
         // everything to the left of the new focus:
-        //   existing left  ++ current focus ++ existing right ++ all new siblings except the last
+        //   existing left ++ current focus ++ existing right ++ all new siblings except the first
         val newLeft = (ls :+ focus) ++ rs ++ trees
 
         Cursor(newFocus, Ctx(newLeft, p, Vector.empty) :: up)
 
       case Nil =>
         throw new AssertionError(
-          "Unreachable: addSiblingRight called at root node which cannot have siblings"
+          "Unreachable: addSiblingRightAndEnter called at root node which cannot have siblings"
         )
 
   def up: Cursor[NormalType, tags.gen.Element] =

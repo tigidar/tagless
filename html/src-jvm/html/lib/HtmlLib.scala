@@ -46,11 +46,11 @@ def headBlock(titleText: String, colorScheme: ColorTheme) =
       > linkTag(rel := "icon", tpe := "image/svg+xml", href := "/vite.svg")
       > linkTag(rel := "apple-touch-icon", href := "/apple-touch-icon.png")
       > styleSheetsLinks(
-        "/css/modern-normalize.css",
-        "/css/flatten.css",
-        "/css/layout.css",
-        "/css/styles.css",
-      )
-      > colorSchemeMeta(colorScheme)
+          "/css/modern-normalize.css",
+          "/css/flatten.css",
+          "/css/layout.css",
+          "/css/styles.css"
+        )
+      >^ colorSchemeMeta(colorScheme)
 
 
