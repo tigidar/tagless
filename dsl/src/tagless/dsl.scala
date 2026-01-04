@@ -62,7 +62,7 @@ object dsl:
     def >>[N1 <: NodeType, E1 <: tags.gen.Element](
         node: Node[N1, E1]
     ): Cursor[N1, E1] =
-      c.addChildAndEnter[N1, E1](Tree.Node(node, Vector.empty))
+      c.addChildAndEnter[N1, E1](Tree(node, Vector.empty))
 
     def >>(rep: Repeated): Cursor[NormalType, E] =
       c.addChildrenStay(List.fill(rep.times)(rep.fragment.root))
@@ -118,7 +118,7 @@ object dsl:
       c.addSiblingRightAndEnter[N1, E1](siblings)
 
     /** Converting two standalone html snippets (cursors) into a list of
-      * Tree.Nodes, this is useful when you need to these as siblings in one
+      * Trees, this is useful when you need to these as siblings in one
       * step, to the current cursor position.
       *
       * @param N1
@@ -131,7 +131,7 @@ object dsl:
         siblingCursor: Cursor[N1, E1]
     )(using
         ev: NotRoot[E]
-    ): List[Tree.Node[Dom]] =
+    ): List[Tree[Dom]] =
       List(c.seal, siblingCursor.seal)
 
     def <^(i: Int): Cursor[NormalType, tags.gen.Element] =

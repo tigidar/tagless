@@ -3,19 +3,21 @@ package dom
 import munit.*
 import tags.T.*
 
+/** Helper to extract tag from a Dom node */
+def getTag(dom: Dom): String = dom match
+  case Node.Element(tag, _)     => tag
+  case Node.VoidElement(tag, _) => tag
+  case Node.Text(_)             => "<text>"
+
 class CtxTest extends FunSuite:
 
-  // Helper to create a simple parent node
   def divNode: Node[NormalType, tags.gen.HTMLDivElement] =
     Node.Element("div")
 
-  def spanNode: Node[NormalType, tags.gen.HTMLSpanElement] =
-    Node.Element("span")
-
   test("Ctx holds left siblings, parent, and right siblings"):
     val parent = divNode
-    val leftSibling = Tree.Node[Dom](Node.Element("span"), Vector.empty)
-    val rightSibling = Tree.Node[Dom](Node.Element("p"), Vector.empty)
+    val leftSibling = Tree[Dom](Node.Element("span"), Vector.empty)
+    val rightSibling = Tree[Dom](Node.Element("p"), Vector.empty)
 
     val ctx = Ctx(
       left = Vector(leftSibling),
@@ -40,10 +42,10 @@ class CtxTest extends FunSuite:
 
   test("Ctx preserves order of siblings"):
     val parent = divNode
-    val left1 = Tree.Node[Dom](Node.Element("span"), Vector.empty)
-    val left2 = Tree.Node[Dom](Node.Element("p"), Vector.empty)
-    val right1 = Tree.Node[Dom](Node.Element("a"), Vector.empty)
-    val right2 = Tree.Node[Dom](Node.Element("b"), Vector.empty)
+    val left1 = Tree[Dom](Node.Element("span"), Vector.empty)
+    val left2 = Tree[Dom](Node.Element("p"), Vector.empty)
+    val right1 = Tree[Dom](Node.Element("a"), Vector.empty)
+    val right2 = Tree[Dom](Node.Element("b"), Vector.empty)
 
     val ctx = Ctx(
       left = Vector(left1, left2),
@@ -51,42 +53,10 @@ class CtxTest extends FunSuite:
       right = Vector(right1, right2)
     )
 
-    assertEquals(
-      ctx
-        .left(0)
-        .asInstanceOf[Tree.Node[Dom]]
-        .value
-        .asInstanceOf[Node.Element[?, ?]]
-        .tag,
-      "span"
-    )
-    assertEquals(
-      ctx
-        .left(1)
-        .asInstanceOf[Tree.Node[Dom]]
-        .value
-        .asInstanceOf[Node.Element[?, ?]]
-        .tag,
-      "p"
-    )
-    assertEquals(
-      ctx
-        .right(0)
-        .asInstanceOf[Tree.Node[Dom]]
-        .value
-        .asInstanceOf[Node.Element[?, ?]]
-        .tag,
-      "a"
-    )
-    assertEquals(
-      ctx
-        .right(1)
-        .asInstanceOf[Tree.Node[Dom]]
-        .value
-        .asInstanceOf[Node.Element[?, ?]]
-        .tag,
-      "b"
-    )
+    assertEquals(getTag(ctx.left(0).value), "span")
+    assertEquals(getTag(ctx.left(1).value), "p")
+    assertEquals(getTag(ctx.right(0).value), "a")
+    assertEquals(getTag(ctx.right(1).value), "b")
 
 class CursorBasicsTest extends FunSuite:
 
@@ -105,8 +75,7 @@ class CursorBasicsTest extends FunSuite:
 
     assert(cursor.isRoot)
     assertEquals(cursor.depth, 0)
-    val elem = cursor.focus.value.asInstanceOf[Node.Element[?, ?]]
-    assertEquals(elem.tag, "html")
+    assertEquals(getTag(cursor.focus.value), "html")
 
   test("depth returns stack length"):
     val root = Cursor(divNode)
@@ -139,8 +108,7 @@ class CursorBasicsTest extends FunSuite:
       root.addChild(Node.Element[NormalType, tags.gen.HTMLSpanElement]("span"))
 
     assert(child.parent.isDefined)
-    val parentNode = child.parent.get.asInstanceOf[Node.Element[?, ?]]
-    assertEquals(parentNode.tag, "div")
+    assertEquals(getTag(child.parent.get), "div")
 
   test("debug returns readable cursor info"):
     val cursor = Cursor(divNode)
@@ -162,8 +130,7 @@ class CursorNavigationTest extends FunSuite:
     val back = child.up
 
     assert(back.isRoot)
-    val elem = back.focus.value.asInstanceOf[Node.Element[?, ?]]
-    assertEquals(elem.tag, "div")
+    assertEquals(getTag(back.focus.value), "div")
 
   test("up throws AssertionError when called on root"):
     val root = Cursor(divNode)
@@ -179,11 +146,7 @@ class CursorNavigationTest extends FunSuite:
     val back = child.up
 
     assertEquals(back.focus.children.length, 1)
-    val childNode = back.focus.children.head
-      .asInstanceOf[Tree.Node[Dom]]
-      .value
-      .asInstanceOf[Node.Element[?, ?]]
-    assertEquals(childNode.tag, "span")
+    assertEquals(getTag(back.focus.children.head.value), "span")
 
   test("upN navigates multiple levels"):
     val root = Cursor(divNode)
@@ -228,8 +191,7 @@ class CursorChildOperationsTest extends FunSuite:
       root.addChild(Node.Element[NormalType, tags.gen.HTMLSpanElement]("span"))
 
     assertEquals(child.depth, 1)
-    val elem = child.focus.value.asInstanceOf[Node.Element[?, ?]]
-    assertEquals(elem.tag, "span")
+    assertEquals(getTag(child.focus.value), "span")
 
   test("addChild puts previous children to the left in context"):
     val root = Cursor(divNode)
@@ -241,11 +203,7 @@ class CursorChildOperationsTest extends FunSuite:
     )
 
     assertEquals(secondChild.stack.head.left.length, 1)
-    val leftSibling = secondChild.stack.head.left.head
-      .asInstanceOf[Tree.Node[Dom]]
-      .value
-      .asInstanceOf[Node.Element[?, ?]]
-    assertEquals(leftSibling.tag, "span")
+    assertEquals(getTag(secondChild.stack.head.left.head.value), "span")
 
   test("addChildStay with Node adds child but keeps focus at parent"):
     val root = Cursor(divNode)
@@ -255,16 +213,11 @@ class CursorChildOperationsTest extends FunSuite:
 
     assertEquals(sameLevel.depth, 0)
     assertEquals(sameLevel.focus.children.length, 1)
-    val childNode = sameLevel.focus.children.head
-      .asInstanceOf[Tree.Node[Dom]]
-      .value
-      .asInstanceOf[Node.Element[?, ?]]
-    assertEquals(childNode.tag, "span")
+    assertEquals(getTag(sameLevel.focus.children.head.value), "span")
 
-  test("addChildStay with Tree.Node adds child but keeps focus at parent"):
+  test("addChildStay with Tree adds child but keeps focus at parent"):
     val root = Cursor(divNode)
-    val childTree: Tree.Node[Dom] =
-      Tree.Node[Dom](Node.Element("span"), Vector.empty)
+    val childTree = Tree[Dom](Node.Element("span"), Vector.empty)
     val sameLevel = root.addChildStay(childTree)
 
     assertEquals(sameLevel.depth, 0)
@@ -272,26 +225,24 @@ class CursorChildOperationsTest extends FunSuite:
 
   test("addChildrenStay adds multiple children"):
     val root = Cursor(divNode)
-    val children: List[Tree.Node[Dom]] = List(
-      Tree.Node[Dom](Node.Element("span"), Vector.empty),
-      Tree.Node[Dom](Node.Element("p"), Vector.empty),
-      Tree.Node[Dom](Node.Element("a"), Vector.empty)
+    val children: List[Tree[Dom]] = List(
+      Tree[Dom](Node.Element("span"), Vector.empty),
+      Tree[Dom](Node.Element("p"), Vector.empty),
+      Tree[Dom](Node.Element("a"), Vector.empty)
     )
 
     val result = root.addChildrenStay(children)
 
     assertEquals(result.focus.children.length, 3)
 
-  test("addChildAndEnter with Tree.Node adds child and descends"):
+  test("addChildAndEnter with Tree adds child and descends"):
     val root = Cursor(divNode)
-    val childTree: Tree.Node[Dom] =
-      Tree.Node[Dom](Node.Element("span"), Vector.empty)
+    val childTree = Tree[Dom](Node.Element("span"), Vector.empty)
     val child =
       root.addChildAndEnter[NormalType, tags.gen.HTMLSpanElement](childTree)
 
     assertEquals(child.depth, 1)
-    val elem = child.focus.value.asInstanceOf[Node.Element[?, ?]]
-    assertEquals(elem.tag, "span")
+    assertEquals(getTag(child.focus.value), "span")
 
   test("nested addChild creates proper tree structure"):
     val root = Cursor(divNode)
@@ -304,11 +255,8 @@ class CursorChildOperationsTest extends FunSuite:
     assertEquals(grandchild.depth, 2)
 
     val result = grandchild.resultTree
-    val rootNode = result.asInstanceOf[Tree.Node[Dom]]
-    assertEquals(rootNode.children.length, 1)
-
-    val childTreeNode = rootNode.children.head.asInstanceOf[Tree.Node[Dom]]
-    assertEquals(childTreeNode.children.length, 1)
+    assertEquals(result.children.length, 1)
+    assertEquals(result.children.head.children.length, 1)
 
 class CursorSiblingOperationsTest extends FunSuite:
 
@@ -328,12 +276,11 @@ class CursorSiblingOperationsTest extends FunSuite:
 
     assertEquals(withSiblings.stack.head.right.length, 1)
 
-  test("addSiblingRightStay with Tree.Node adds sibling to right"):
+  test("addSiblingRightStay with Tree adds sibling to right"):
     val root = Cursor(divNode)
     val child =
       root.addChild(Node.Element[NormalType, tags.gen.HTMLSpanElement]("span"))
-    val siblingTree: Tree.Node[Dom] =
-      Tree.Node[Dom](Node.Element("p"), Vector.empty)
+    val siblingTree = Tree[Dom](Node.Element("p"), Vector.empty)
 
     val withSibling =
       child.addSiblingRightStay[NormalType, tags.gen.HTMLParagraphElement](
@@ -353,8 +300,7 @@ class CursorSiblingOperationsTest extends FunSuite:
       )
     )
 
-    val elem = withSiblings.focus.value.asInstanceOf[Node.Element[?, ?]]
-    assertEquals(elem.tag, "span")
+    assertEquals(getTag(withSiblings.focus.value), "span")
 
   test("addSiblingRightAndEnter adds siblings and moves focus"):
     val root = Cursor(divNode)
@@ -366,8 +312,7 @@ class CursorSiblingOperationsTest extends FunSuite:
         Vector(Node.Element("p"))
       )
 
-    val elem = moved.focus.value.asInstanceOf[Node.Element[?, ?]]
-    assertEquals(elem.tag, "p")
+    assertEquals(getTag(moved.focus.value), "p")
 
   test("addSiblingRightAndEnter puts original focus to left"):
     val root = Cursor(divNode)
@@ -380,11 +325,7 @@ class CursorSiblingOperationsTest extends FunSuite:
       )
 
     assert(moved.stack.head.left.nonEmpty)
-    val leftSibling = moved.stack.head.left.last
-      .asInstanceOf[Tree.Node[Dom]]
-      .value
-      .asInstanceOf[Node.Element[?, ?]]
-    assertEquals(leftSibling.tag, "span")
+    assertEquals(getTag(moved.stack.head.left.last.value), "span")
 
 class CursorSealAndResultTreeTest extends FunSuite:
 
@@ -398,8 +339,7 @@ class CursorSealAndResultTreeTest extends FunSuite:
 
     val sealedTree = child.seal
 
-    val elem = sealedTree.value.asInstanceOf[Node.Element[?, ?]]
-    assertEquals(elem.tag, "div")
+    assertEquals(getTag(sealedTree.value), "div")
     assertEquals(sealedTree.children.length, 1)
 
   test("seal at root returns just the focus"):
@@ -407,8 +347,7 @@ class CursorSealAndResultTreeTest extends FunSuite:
 
     val sealedTree = root.seal
 
-    val elem = sealedTree.value.asInstanceOf[Node.Element[?, ?]]
-    assertEquals(elem.tag, "div")
+    assertEquals(getTag(sealedTree.value), "div")
 
   test("seal preserves siblings"):
     val root = Cursor(divNode)
@@ -433,9 +372,7 @@ class CursorSealAndResultTreeTest extends FunSuite:
 
     val tree = grandchild.resultTree
 
-    val rootNode = tree.asInstanceOf[Tree.Node[Dom]]
-    val elem = rootNode.value.asInstanceOf[Node.Element[?, ?]]
-    assertEquals(elem.tag, "div")
+    assertEquals(getTag(tree.value), "div")
 
   test("resultTree includes all siblings in correct order"):
     val root = Cursor(divNode)
@@ -449,22 +386,9 @@ class CursorSealAndResultTreeTest extends FunSuite:
 
     val tree = withSibling.resultTree
 
-    val rootNode = tree.asInstanceOf[Tree.Node[Dom]]
-    assertEquals(rootNode.children.length, 2)
-
-    val firstChild = rootNode
-      .children(0)
-      .asInstanceOf[Tree.Node[Dom]]
-      .value
-      .asInstanceOf[Node.Element[?, ?]]
-    assertEquals(firstChild.tag, "span")
-
-    val secondChild = rootNode
-      .children(1)
-      .asInstanceOf[Tree.Node[Dom]]
-      .value
-      .asInstanceOf[Node.Element[?, ?]]
-    assertEquals(secondChild.tag, "p")
+    assertEquals(tree.children.length, 2)
+    assertEquals(getTag(tree.children(0).value), "span")
+    assertEquals(getTag(tree.children(1).value), "p")
 
 class CursorEdgeCasesTest extends FunSuite:
 
@@ -478,24 +402,19 @@ class CursorEdgeCasesTest extends FunSuite:
     )
 
     assertEquals(voidChild.focus.children.length, 1)
-    val childNode =
-      voidChild.focus.children.head.asInstanceOf[Tree.Node[Dom]].value
+    val childNode = voidChild.focus.children.head.value
     assert(childNode.isInstanceOf[Node.VoidElement[?, ?]])
 
   test("Text node can be added as child"):
     val root = Cursor(divNode)
-    val textTree: Tree.Node[Dom] =
-      Tree.Node[Dom](Node.Text("Hello World"), Vector.empty)
+    val textTree = Tree[Dom](Node.Text("Hello World"), Vector.empty)
     val textChild = root.addChildStay(textTree)
 
     assertEquals(textChild.focus.children.length, 1)
-    val childNode =
-      textChild.focus.children.head.asInstanceOf[Tree.Node[Dom]].value
-    assert(
-      childNode.isInstanceOf[Node.Text],
-      s"Expected Node.Text but got ${childNode.getClass}"
-    )
-    assertEquals(childNode.asInstanceOf[Node.Text].value, "Hello World")
+    val childNode = textChild.focus.children.head.value
+    childNode match
+      case Node.Text(text) => assertEquals(text, "Hello World")
+      case other           => fail(s"Expected Node.Text but got $other")
 
   test("Element with attributes is preserved"):
     val elemWithAttrs = Node.Element[NormalType, tags.gen.HTMLDivElement](
@@ -504,13 +423,14 @@ class CursorEdgeCasesTest extends FunSuite:
     )
     val root = Cursor(elemWithAttrs)
 
-    val elem = root.focus.value.asInstanceOf[Node.Element[?, ?]]
-    assertEquals(elem.attrs.length, 1)
+    root.focus.value match
+      case Node.Element(_, attrs) => assertEquals(attrs.length, 1)
+      case other                  => fail(s"Expected Node.Element but got $other")
 
     val tree = root.resultTree
-    val resultElem =
-      tree.asInstanceOf[Tree.Node[Dom]].value.asInstanceOf[Node.Element[?, ?]]
-    assertEquals(resultElem.attrs.length, 1)
+    tree.value match
+      case Node.Element(_, attrs) => assertEquals(attrs.length, 1)
+      case other                  => fail(s"Expected Node.Element but got $other")
 
   test("Deep nesting works correctly"):
     var cursor: Cursor[NormalType, ?] = Cursor(divNode)
@@ -523,17 +443,16 @@ class CursorEdgeCasesTest extends FunSuite:
     assertEquals(cursor.depth, 10)
 
     val tree = cursor.resultTree
-    var current = tree.asInstanceOf[Tree.Node[Dom]]
+    var current = tree
     for i <- 1 to 10 do
       assertEquals(current.children.length, 1)
-      current = current.children.head.asInstanceOf[Tree.Node[Dom]]
+      current = current.children.head
 
   test("Multiple children at same level"):
     val root = Cursor(divNode)
-    val spanTree: Tree.Node[Dom] =
-      Tree.Node[Dom](Node.Element("span"), Vector.empty)
-    val pTree: Tree.Node[Dom] = Tree.Node[Dom](Node.Element("p"), Vector.empty)
-    val aTree: Tree.Node[Dom] = Tree.Node[Dom](Node.Element("a"), Vector.empty)
+    val spanTree = Tree[Dom](Node.Element("span"), Vector.empty)
+    val pTree = Tree[Dom](Node.Element("p"), Vector.empty)
+    val aTree = Tree[Dom](Node.Element("a"), Vector.empty)
     val result = root
       .addChildStay(spanTree)
       .addChildStay(pTree)
