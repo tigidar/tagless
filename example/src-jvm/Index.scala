@@ -12,17 +12,16 @@ import ex.PageMap.{NavButtons, Pages}
 // format: off
 object Index:
 
-
   val colorScheme = ColorTheme(
     "light".theme -> "#ffffff".color,
     "dark".theme -> "#0b0f19".color
   )
 
   val menu = Menu(
-    MenuKey(NavButtons.homeId) -> MenuItem(Title("Home"), Url("/")),
-    MenuKey(NavButtons.todoId) -> MenuItem(Title("Todos"), Url("/todos")),
-    MenuKey(NavButtons.contactId) -> MenuItem(Title("Contact"), Url("/contact")),
-    MenuKey(NavButtons.aboutId) -> MenuItem(Title("About"), Url("/about")),
+    NavButtons.homeId -> ("Home", "/"),
+    NavButtons.todoId -> ("Todos", "/todos"),
+    NavButtons.contactId -> ("Contact", "/contact"),
+    NavButtons.aboutId -> ("About", "/about"),
   )
 
 // format: off

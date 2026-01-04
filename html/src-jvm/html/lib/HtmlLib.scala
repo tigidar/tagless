@@ -5,6 +5,9 @@ import colors.{ColorTheme}
 import tags.T.*
 import tags.Aria
 import tagless.dsl.{given, *}
+import tags.gen.HTMLLinkElement
+import dom.Node
+import dom.VoidType
 
 // format: off
 def colorSchemeMeta(colorScheme: ColorTheme) =
@@ -26,6 +29,12 @@ def descriptionMeta(description: String) =
 def keywordsMeta(keywords: String) =
   metaTag(nameAttr := "keywords", contentAttr := keywords)
 
+def stylesheetLink(hrefValue: String): Node[VoidType, HTMLLinkElement] =
+  linkTag(rel := "stylesheet", href := hrefValue)
+
+def styleSheetsLinks(stylesheetPath: String, stylesheetPaths: String*): Vector[Node[VoidType, HTMLLinkElement]] =
+  (stylesheetPath +: stylesheetPaths.toVector).map(stylesheetLink)
+
 def headBlock(titleText: String, colorScheme: ColorTheme) =
   ~ headTag
     >>  metaTag(charset := "UTF-8")
@@ -36,10 +45,12 @@ def headBlock(titleText: String, colorScheme: ColorTheme) =
       > titleTag(titleText)
       > linkTag(rel := "icon", tpe := "image/svg+xml", href := "/vite.svg")
       > linkTag(rel := "apple-touch-icon", href := "/apple-touch-icon.png")
-      > linkTag(rel:= "stylesheet", href := "/css/modern-normalize.css")
-      > linkTag(rel:= "stylesheet", href := "/css/flatten.css")
-      > linkTag(rel:= "stylesheet", href := "/css/layout.css")
-      > linkTag(rel:= "stylesheet", href := "/css/styles.css")
+      > styleSheetsLinks(
+        "/css/modern-normalize.css",
+        "/css/flatten.css",
+        "/css/layout.css",
+        "/css/styles.css",
+      )
       > colorSchemeMeta(colorScheme)
 
 
