@@ -1,24 +1,6 @@
 package ex
 
 import html.lib.id
-<<<<<<< HEAD
-
-enum PageType[+A]:
-  case ContentOnly(id: String)
-  case State(id: String, a: A)
-
-  def elementId: String = this match
-    case ContentOnly(id) => id
-    case State(id, _)    => id
-
-enum PageState:
-  case TodoList(
-      items: List[String]
-  )
-  case ErrorMessage(
-      message: String
-  )
-=======
 import html.lib.{CssClass, isHidden}
 import scala.compiletime.constValue
 
@@ -65,7 +47,6 @@ object Route:
       buttonId: B,
       page: P
   ): Route[B, P] = new Route(buttonId, page)
->>>>>>> 60956bd (cleanup scalajs module, improve typesafety)
 
 object PageMap:
 
@@ -82,20 +63,6 @@ object PageMap:
     val contactId: "contact-content" = id["contact-content"]
     val errorId: "error-page" = id["error-page"]
 
-<<<<<<< HEAD
-  val router: Map[String, PageType[PageState]] = Map(
-    NavButtons.homeId -> PageType.ContentOnly(Pages.welcomeId),
-    NavButtons.aboutId -> PageType.ContentOnly(Pages.aboutId),
-    NavButtons.todoId -> PageType
-      .State(Pages.todoListId, PageState.TodoList(Nil)),
-    NavButtons.contactId -> PageType.ContentOnly(Pages.contactId),
-    Pages.errorId -> PageType.State(
-      Pages.errorId,
-      PageState.ErrorMessage(
-        "Something went wrong, sorry about the inconvenience."
-      )
-    )
-=======
   // Type-safe page definitions
   object PageDefs:
     val welcome = PageDef.ContentOnly(Pages.welcomeId)
@@ -146,5 +113,4 @@ object PageMap:
     Pages.todoListId,
     Pages.contactId,
     Pages.errorId
->>>>>>> 60956bd (cleanup scalajs module, improve typesafety)
   )
