@@ -7,6 +7,8 @@ import html.lib.menu.*
 import html.lib.colors.*
 import tagless.dsl.{given, *}
 
+import ex.PageMap.{NavButtons, Pages}
+
 // format: off
 object Index:
 
@@ -16,20 +18,31 @@ object Index:
   )
 
   val menu = Menu(
-    MenuKey("home") -> MenuItem(Title("Home"), Url("/")),
-    MenuKey("todos") -> MenuItem(Title("Todos"), Url("/todos")),
-    MenuKey("contact") -> MenuItem(Title("Contact"), Url("/contact")),
-    MenuKey("about") -> MenuItem(Title("About"), Url("/about")),
+    NavButtons.homeId -> ("Home", "/"),
+    NavButtons.todoId -> ("Todos", "/todos"),
+    NavButtons.contactId -> ("Contact", "/contact"),
+    NavButtons.aboutId -> ("About", "/about"),
   )
 
+// format: off
   val body = 
     ~ bodyTag
       >>^ menuBlock(menu)
-      >> div(idAttr := "app")
-      > div(idAttr := "welcome-content")
-      >>^ Home.content
-      >>^ About.content
-      > scriptTag( tpe := "module", src := "/src/main.ts")
+       >> div(idAttr := "app")
+          >> div(idAttr := Pages.welcomeId, cls := "is-hidden")
+           >>^ Home.content
+          <^ 1
+          >> div(idAttr := Pages.aboutId, cls := "is-hidden") // descend down one step
+            >>^ About.content // add the about content here
+          <^ 1 // move back up
+          > div(idAttr := Pages.todoListId, cls := "is-hidden") // add as a sibling to about
+            >> div("some table will come here") // add the todo content here
+          <^ 1 // move back up
+          > div(idAttr := Pages.contactId, cls := "is-hidden") // add another sibling
+              >> div("contact us at") // add one child and descend into it
+          <^ 2 // step two levels back to body
+            >>^ ErrorPage.error(Pages.errorId) // We add the fragment but stay at the body level
+          >> scriptTag( tpe := "module", src := "/src/main.ts") // adding script as a child of body
 
   val root = ~ htmlRootTag >> 
       headBlock("TODO App", colorScheme) + 

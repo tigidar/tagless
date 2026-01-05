@@ -39,3 +39,14 @@ object menu:
     val empty: Menu = Menu(scala.collection.immutable.VectorMap.empty)
     def apply(kvs: (MenuKey, MenuItem)*): Menu =
       Menu(scala.collection.immutable.VectorMap.from(kvs))
+
+    def apply(
+        route: (String, (String, String)),
+        otherRoutes: (String, (String, String))*
+    ): Menu =
+      Menu(
+        ((route +: otherRoutes.toVector).map:
+          case (key, (title, url)) =>
+            MenuKey(key) -> MenuItem(Title(title), Url(url))
+        )*
+      )

@@ -13,13 +13,12 @@ object MarkdownConverterExtensions {
   given Conversion[String, Iterable[String]] with
     def apply(value: String): Iterable[String] = List(value)
 
-
 }
 
 object MarkdownConverter:
   import dom.CursorExtensions.{*, given}
   import MarkdownConverterExtensions.{*, given}
-  
+
   extension [N1 <: NodeType, E1 <: tags.gen.Element](childCur: Cursor[N1, E1])
     def upAsParent[Np <: NodeType, Ep <: tags.gen.Element]: Cursor[Np, Ep] =
       // implementation can call your regular `up` and (internally) ascribe the parent types.
