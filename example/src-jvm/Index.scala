@@ -34,16 +34,17 @@ object Index:
            >>^ Home.content
           <^ 1
           >> div(idAttr := Pages.aboutId, cls := isHidden.value) // descend down one step
-            >>^ About.content // add the about content here
-          <^ 1 // move back up
-          > div(idAttr := Pages.todoListId, cls := isHidden.value) // add as a sibling to about
-            >> div("some table will come here") // add the todo content here
-          <^ 1 // move back up
-          > div(idAttr := Pages.contactId, cls := isHidden.value) // add another sibling
+            >>^ About.content // add the about content here without descending
+          <^ 1 // move back up one level to app tag
+          >> div(idAttr := Pages.todoListId, cls := isHidden.value) // add as child of app, i.e. a sibling to about
+            >> div("some table will come here") // add the todo content as a child and descend into it
+          <^ 2 // move back up 2 levels to app tag
+            >> div(idAttr := Pages.contactId, cls := isHidden.value) // add another child of app
               >> div("contact us at") // add one child and descend into it
           <^ 2 // step two levels back to body
-            >>^ ErrorPage.error(Pages.errorId) // We add the fragment but stay at the body level
-          >> scriptTag( tpe := "module", src := "/src/main.ts") // adding script as a child of body
+            >>^ ErrorPage.error(Pages.errorId) // We add the fragment also as a child of app but do not descend into it
+          <^ 1 // move back up to body
+            >> scriptTag( tpe := "module", src := "/src/main.ts") // adding script as a child of body
 
   val root = ~ htmlRootTag >>
       headBlock("TODO App", colorScheme) +
