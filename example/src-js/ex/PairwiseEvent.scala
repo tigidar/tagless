@@ -14,7 +14,7 @@ inline def get[A <: HTMLElement](id: String) =
 inline def getDiv(id: String): HTMLDivElement =
   dom.document.getElementById(id).asInstanceOf[HTMLDivElement]
 
-inline def hideDiv(id: String): Unit = 
+inline def hideDiv(id: String): Unit =
   getDiv(id).classList.add(isHidden.value)
 
 inline def showDiv(id: String): Unit =
@@ -33,28 +33,32 @@ object DomAction:
   def executeAll(actions: List[DomAction]): Unit =
     actions.foreach(_.execute())
 
-/** Pure state representing which page element is currently visible.
-  * This tracks the current state without performing side effects.
+/** Pure state representing which page element is currently visible. This tracks
+  * the current state without performing side effects.
   */
 final case class PageVisibility(currentElementId: String):
 
-  /** Calculate the transition to a new page.
-    * Returns None if trying to switch to the initial welcome page (special case),
-    * otherwise returns the new state and the DOM actions needed.
+  /** Calculate the transition to a new page. Returns None if trying to switch
+    * to the initial welcome page (special case), otherwise returns the new
+    * state and the DOM actions needed.
     */
-  def transitionTo(nextElementId: String): Option[(PageVisibility, List[DomAction])] =
+  def transitionTo(
+      nextElementId: String
+  ): Option[(PageVisibility, List[DomAction])] =
     if nextElementId == PageMap.Pages.welcomeId then None
     else if nextElementId == currentElementId then
       // Already on this page, no transition needed
       Some((this, Nil))
     else
-      Some((
-        PageVisibility(nextElementId),
-        List(
-          DomAction.Hide(currentElementId),
-          DomAction.Show(nextElementId)
+      Some(
+        (
+          PageVisibility(nextElementId),
+          List(
+            DomAction.Hide(currentElementId),
+            DomAction.Show(nextElementId)
+          )
         )
-      ))
+      )
 
 object PageVisibility:
   val initial: PageVisibility = PageVisibility(PageMap.Pages.welcomeId)
@@ -67,13 +71,15 @@ final case class SwitchEvent(
     currentPage: PageDef[?]
 ):
 
-  /** Attempt to switch to a new page by button ID.
-    * Returns the new state and DOM actions, or None if invalid.
+  /** Attempt to switch to a new page by button ID. Returns the new state and
+    * DOM actions, or None if invalid.
     */
   def switchTo(buttonId: String): Option[(SwitchEvent, List[DomAction])] =
+    println(PageMap)
     PageMap.findPage(buttonId).flatMap { nextPage =>
-      visibility.transitionTo(nextPage.elementId).map { case (newVis, actions) =>
-        (SwitchEvent(newVis, nextPage), actions)
+      visibility.transitionTo(nextPage.elementId).map {
+        case (newVis, actions) =>
+          (SwitchEvent(newVis, nextPage), actions)
       }
     }
 
@@ -93,16 +99,16 @@ object SwitchEvent:
     PageMap.initialPage
   )
 
-/** The application page state, combining current switch state with page-specific state.
-  * This is the main state type used in the signal.
+/** The application page state, combining current switch state with
+  * page-specific state. This is the main state type used in the signal.
   */
 final case class Page(
     switchState: SwitchEvent,
     pageState: Option[PageState]
 ):
 
-  /** Handle a navigation event from a button click.
-    * Performs DOM updates as side effects and returns the new Page state.
+  /** Handle a navigation event from a button click. Performs DOM updates as
+    * side effects and returns the new Page state.
     */
   def handleNavigation(buttonId: String): Page =
     switchState.switchTo(buttonId) match
@@ -117,7 +123,8 @@ final case class Page(
         // Invalid navigation - switch to error page
         val (errorSwitch, actions) = switchState.switchToError
         DomAction.executeAll(actions)
-        println(s"Navigation failed, switched to error page")
+        println(s"Navigation failed for $buttonId, switched to error page")
+        println(PageMap.findPage(buttonId))
         Page(
           errorSwitch,
           Some(PageMap.errorPage.initialState)
@@ -126,7 +133,7 @@ final case class Page(
   private def extractPageState(page: PageDef[?]): Option[PageState] =
     page.initialState match
       case PageState.NoState => None
-      case s: PageState => Some(s)
+      case s: PageState      => Some(s)
 
 object Page:
   val initial: Page = Page(

@@ -13,8 +13,8 @@ enum PageState derives CanEqual:
   case ErrorMessage(message: String)
   case NoState
 
-/** A page definition that links an element ID to its optional state.
-  * Uses singleton string types for compile-time ID verification.
+/** A page definition that links an element ID to its optional state. Uses
+  * singleton string types for compile-time ID verification.
   */
 sealed trait PageDef[+S <: PageState]:
   type ElementId <: String & Singleton
@@ -72,10 +72,13 @@ object PageMap:
       PageState.TodoList(Nil)
     )
     val contact = PageDef.ContentOnly(Pages.contactId)
-    val error: PageDef.Stateful["error-page", PageState.ErrorMessage] = PageDef.Stateful(
-      Pages.errorId,
-      PageState.ErrorMessage("Something went wrong, sorry about the inconvenience.")
-    )
+    val error: PageDef.Stateful["error-page", PageState.ErrorMessage] =
+      PageDef.Stateful(
+        Pages.errorId,
+        PageState.ErrorMessage(
+          "Something went wrong, sorry about the inconvenience."
+        )
+      )
 
   // Type-safe routes
   object Routes:
@@ -98,13 +101,15 @@ object PageMap:
 
   /** Find a page definition by button ID */
   def findPage(buttonId: String): Option[PageDef[?]] =
+    println(routeByButtonId)
     routeByButtonId.get(buttonId)
 
   /** The initial/default page to show */
   val initialPage: PageDef[PageState.NoState.type] = PageDefs.welcome
 
   /** The error page to show on failures */
-  val errorPage: PageDef.Stateful["error-page", PageState.ErrorMessage] = PageDefs.error
+  val errorPage: PageDef.Stateful["error-page", PageState.ErrorMessage] =
+    PageDefs.error
 
   /** All page element IDs for validation */
   val allPageIds: Set[String] = Set(

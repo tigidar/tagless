@@ -238,6 +238,7 @@ A simple example how to use the dsl to create a static page and integrate with `
 
 ## Future improvements
 
+- Consolidate dsl, currently its too rigid and confusing
 - Add proper docs
 - Support `xhtml` attributes / markup
 - Make things more typesafe
