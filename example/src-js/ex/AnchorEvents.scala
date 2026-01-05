@@ -1,9 +1,5 @@
 package ex
-<<<<<<< HEAD
-//import com.raquo.airstream.eventbus.EventBusStream
-=======
 
->>>>>>> 60956bd (cleanup scalajs module, improve typesafety)
 import com.raquo.airstream.core.{EventStream, Signal, Observer}
 import com.raquo.airstream.eventbus.EventBus
 import com.raquo.airstream.ownership.{Owner, ManualOwner}
@@ -21,46 +17,7 @@ object MouseEvents:
   val onFocus = "onfocus"
   val onBlur = "onblur"
 
-<<<<<<< HEAD
-final case class AnchorEvents()(using o: Owner):
 
-  /* Var alternative, it implies mutable state which can be okay in some cases
-  val pageEvent = Var(PageEvent.initialPage)
-  val pageObserver: Observer[String] =
-    Observer[String] { anchorId =>
-      pageEvent.update { current =>
-        current.switchTo(anchorId)
-      }
-    }
-
-  val obs = pageEventBus.events.addObserver(pageObserver)
-   */
-
-  val pageEventBus = new EventBus[html.Anchor]
-
-  val pageStateSignal: Signal[Page] =
-    pageEventBus.events
-      .scanLeft(Page.initialPage) { (current, anchor) =>
-        println("AnchorEvents.pageStateSignal.scanLeft:")
-        current.switchTo(anchor.id)
-      }
-
-  /* We need at least one observer to actually activate the signal
-  so it can be actually triggered. In our case, it is useful because
-  we can do a good work on browser history etc.
-   */
-  val obs = pageStateSignal.addObserver(
-    Observer[Page](pe =>
-      println(s"Current page switched to: ${pe.pageSwitch.id}")
-    )
-  )
-
-  def submit(a: html.Anchor): Unit =
-    println(s"changed url to : ${a}")
-    EventBus.emit(
-      pageEventBus -> a
-    )
-=======
 /** Handles anchor/navigation events using Airstream signals.
   *
   * This class demonstrates the typed state pattern:
@@ -115,4 +72,3 @@ final case class AnchorEvents()(using o: Owner):
   /** Check if a specific page is currently active by element ID */
   def isPageActive(elementId: String)(using page: Page): Boolean =
     page.switchState.visibility.currentElementId == elementId
->>>>>>> 60956bd (cleanup scalajs module, improve typesafety)
