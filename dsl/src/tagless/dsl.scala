@@ -123,9 +123,9 @@ object dsl:
       val seq = siblings.toSeq
       c.addSiblingRightAndEnter[N1, E1](seq.head, seq.tail*)
 
-    /** Converting two standalone html snippets (cursors) into a list of
-      * Trees, this is useful when you need to these as siblings in one
-      * step, to the current cursor position.
+    /** Converting two standalone html snippets (cursors) into a list of Trees,
+      * this is useful when you need to these as siblings in one step, to the
+      * current cursor position.
       *
       * @param N1
       * @param E1
