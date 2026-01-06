@@ -1,0 +1,644 @@
+/* =====================================
+   List Styles
+   ===================================== */
+
+/* List CSS Variables */
+:root {
+  /* List spacing */
+  --list-margin-block: var(--space-4);
+  --list-padding-left: var(--space-6);
+  --list-item-spacing: var(--space-2);
+  --list-nested-margin-top: var(--space-2);
+
+  /* List markers */
+  --list-marker-color: var(--color-fg-muted);
+  --list-marker-size: 0.375rem;
+
+  /* Ordered list */
+  --ol-marker-color: var(--color-fg-muted);
+  --ol-marker-font-weight: var(--font-weight-medium);
+
+  /* Definition list */
+  --dt-font-weight: var(--font-weight-semibold);
+  --dt-color: var(--color-fg);
+  --dd-margin-left: var(--space-4);
+  --dd-color: var(--color-fg-muted);
+
+  /* List group */
+  --list-group-border-color: var(--color-border);
+  --list-group-border-radius: var(--radius-md);
+  --list-group-item-padding-x: var(--space-4);
+  --list-group-item-padding-y: var(--space-3);
+  --list-group-hover-bg: var(--color-bg-subtle);
+  --list-group-active-bg: var(--color-accent-subtle);
+  --list-group-active-border: var(--color-accent);
+
+  /* Inline list */
+  --inline-list-gap: var(--space-4);
+  --inline-list-separator-color: var(--color-border);
+}
+
+/* Theme-specific list overrides */
+:root[data-theme="night"] {
+  --list-group-hover-bg: hsl(0 12% 14%);
+  --list-group-active-bg: hsl(0 50% 15%);
+}
+
+:root[data-theme="dark"] {
+  --list-group-hover-bg: hsl(220 13% 16%);
+  --list-group-active-bg: hsl(220 50% 18%);
+}
+
+:root[data-theme="xorian"] {
+  --list-group-hover-bg: hsl(260 25% 14%);
+  --list-group-active-bg: hsl(270 50% 18%);
+}
+
+:root[data-theme="ocean"] {
+  --list-group-hover-bg: hsl(200 35% 14%);
+  --list-group-active-bg: hsl(180 50% 15%);
+}
+
+:root[data-theme="forest"] {
+  --list-group-hover-bg: hsl(140 22% 14%);
+  --list-group-active-bg: hsl(150 45% 15%);
+}
+
+:root[data-theme="sunset"] {
+  --list-group-hover-bg: hsl(25 25% 14%);
+  --list-group-active-bg: hsl(25 60% 15%);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --list-group-hover-bg: hsl(220 13% 16%);
+    --list-group-active-bg: hsl(45 50% 15%);
+  }
+}
+
+/* =====================================
+   Base List Styles
+   ===================================== */
+ul,
+ol {
+  margin-block: var(--list-margin-block);
+  padding-left: var(--list-padding-left);
+}
+
+ul ul,
+ul ol,
+ol ul,
+ol ol {
+  margin-block: var(--list-nested-margin-top);
+}
+
+li {
+  margin-bottom: var(--list-item-spacing);
+}
+
+li:last-child {
+  margin-bottom: 0;
+}
+
+/* =====================================
+   Unordered List Variants
+   ===================================== */
+
+/* Default disc */
+ul {
+  list-style-type: disc;
+}
+
+ul ul {
+  list-style-type: circle;
+}
+
+ul ul ul {
+  list-style-type: square;
+}
+
+/* Custom bullet markers */
+ul.dash {
+  list-style-type: none;
+  padding-left: var(--space-4);
+}
+
+ul.dash > li::before {
+  content: "–";
+  display: inline-block;
+  width: var(--space-4);
+  margin-left: calc(-1 * var(--space-4));
+  color: var(--list-marker-color);
+}
+
+ul.arrow {
+  list-style-type: none;
+  padding-left: var(--space-4);
+}
+
+ul.arrow > li::before {
+  content: "→";
+  display: inline-block;
+  width: var(--space-4);
+  margin-left: calc(-1 * var(--space-4));
+  color: var(--list-marker-color);
+}
+
+ul.check {
+  list-style-type: none;
+  padding-left: var(--space-5);
+}
+
+ul.check > li::before {
+  content: "✓";
+  display: inline-block;
+  width: var(--space-5);
+  margin-left: calc(-1 * var(--space-5));
+  color: var(--color-success);
+  font-weight: var(--font-weight-bold);
+}
+
+ul.cross {
+  list-style-type: none;
+  padding-left: var(--space-5);
+}
+
+ul.cross > li::before {
+  content: "✗";
+  display: inline-block;
+  width: var(--space-5);
+  margin-left: calc(-1 * var(--space-5));
+  color: var(--color-error);
+  font-weight: var(--font-weight-bold);
+}
+
+ul.dot {
+  list-style-type: none;
+  padding-left: var(--space-4);
+}
+
+ul.dot > li {
+  position: relative;
+  padding-left: var(--space-4);
+}
+
+ul.dot > li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.65em;
+  width: var(--list-marker-size);
+  height: var(--list-marker-size);
+  background: var(--list-marker-color);
+  border-radius: var(--radius-full);
+}
+
+/* =====================================
+   Ordered List Variants
+   ===================================== */
+
+/* Default decimal */
+ol {
+  list-style-type: decimal;
+}
+
+ol ol {
+  list-style-type: lower-alpha;
+}
+
+ol ol ol {
+  list-style-type: lower-roman;
+}
+
+/* Leading zero */
+ol.leading-zero {
+  list-style-type: decimal-leading-zero;
+}
+
+/* Custom number styling */
+ol.custom-numbers {
+  list-style: none;
+  counter-reset: custom-counter;
+  padding-left: var(--space-6);
+}
+
+ol.custom-numbers > li {
+  counter-increment: custom-counter;
+  position: relative;
+}
+
+ol.custom-numbers > li::before {
+  content: counter(custom-counter) ".";
+  position: absolute;
+  left: calc(-1 * var(--space-6));
+  width: var(--space-5);
+  text-align: right;
+  color: var(--ol-marker-color);
+  font-weight: var(--ol-marker-font-weight);
+}
+
+/* Circle numbers */
+ol.circle-numbers {
+  list-style: none;
+  counter-reset: circle-counter;
+  padding-left: var(--space-8);
+}
+
+ol.circle-numbers > li {
+  counter-increment: circle-counter;
+  position: relative;
+}
+
+ol.circle-numbers > li::before {
+  content: counter(circle-counter);
+  position: absolute;
+  left: calc(-1 * var(--space-8));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* =====================================
+   Unstyled List
+   ===================================== */
+ul[role="list"],
+ol[role="list"],
+.list-unstyled {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.list-unstyled li {
+  margin-bottom: 0;
+}
+
+/* =====================================
+   Inline List
+   ===================================== */
+.list-inline {
+  list-style: none;
+  padding-left: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--inline-list-gap);
+}
+
+.list-inline li {
+  margin-bottom: 0;
+}
+
+/* With separator */
+.list-inline-separated {
+  gap: 0;
+}
+
+.list-inline-separated li {
+  padding-right: var(--inline-list-gap);
+}
+
+.list-inline-separated li:not(:last-child)::after {
+  content: "";
+  display: inline-block;
+  width: 1px;
+  height: 1em;
+  margin-left: var(--inline-list-gap);
+  background: var(--inline-list-separator-color);
+  vertical-align: middle;
+}
+
+/* Comma separated */
+.list-comma li:not(:last-child)::after {
+  content: ",";
+}
+
+/* =====================================
+   Definition List
+   ===================================== */
+dl {
+  margin-block: var(--list-margin-block);
+}
+
+dt {
+  font-weight: var(--dt-font-weight);
+  color: var(--dt-color);
+  margin-top: var(--space-3);
+}
+
+dt:first-child {
+  margin-top: 0;
+}
+
+dd {
+  margin-left: var(--dd-margin-left);
+  color: var(--dd-color);
+}
+
+/* Horizontal definition list */
+.dl-horizontal {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-2) var(--space-4);
+}
+
+.dl-horizontal dt {
+  margin-top: 0;
+  text-align: right;
+}
+
+.dl-horizontal dd {
+  margin-left: 0;
+}
+
+/* Inline definition list */
+.dl-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.dl-inline dt {
+  margin-top: 0;
+}
+
+.dl-inline dt::after {
+  content: ":";
+}
+
+.dl-inline dd {
+  margin-left: 0;
+  margin-right: var(--space-4);
+}
+
+/* =====================================
+   List Group (styled container)
+   ===================================== */
+.list-group {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border: var(--border-width-thin) solid var(--list-group-border-color);
+  border-radius: var(--list-group-border-radius);
+  overflow: hidden;
+}
+
+.list-group-item {
+  padding: var(--list-group-item-padding-y) var(--list-group-item-padding-x);
+  border-bottom: var(--border-width-thin) solid var(--list-group-border-color);
+  background: var(--color-bg);
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.list-group-item:last-child {
+  border-bottom: none;
+}
+
+/* Hoverable items */
+.list-group-hover .list-group-item:hover {
+  background: var(--list-group-hover-bg);
+}
+
+/* Clickable items */
+a.list-group-item,
+button.list-group-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+a.list-group-item:hover,
+button.list-group-item:hover {
+  background: var(--list-group-hover-bg);
+}
+
+/* Active item */
+.list-group-item.active {
+  background: var(--list-group-active-bg);
+  border-left: 3px solid var(--list-group-active-border);
+  padding-left: calc(var(--list-group-item-padding-x) - 3px);
+}
+
+/* Disabled item */
+.list-group-item.disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* List group with flush borders */
+.list-group-flush {
+  border: none;
+  border-radius: 0;
+}
+
+.list-group-flush .list-group-item:first-child {
+  border-top: var(--border-width-thin) solid var(--list-group-border-color);
+}
+
+/* =====================================
+   List Group Item Content
+   ===================================== */
+.list-group-item-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.list-group-item-title {
+  font-weight: var(--font-weight-medium);
+  margin-bottom: var(--space-0-5);
+}
+
+.list-group-item-description {
+  font-size: var(--font-size-sm);
+  color: var(--color-fg-muted);
+}
+
+.list-group-item-badge {
+  flex-shrink: 0;
+  margin-left: var(--space-2);
+}
+
+/* =====================================
+   Status Colors for List Items
+   ===================================== */
+.list-group-item.success {
+  background: var(--color-success-subtle);
+  border-left: 3px solid var(--color-success);
+  padding-left: calc(var(--list-group-item-padding-x) - 3px);
+}
+
+.list-group-item.warning {
+  background: var(--color-warning-subtle);
+  border-left: 3px solid var(--color-warning);
+  padding-left: calc(var(--list-group-item-padding-x) - 3px);
+}
+
+.list-group-item.error {
+  background: var(--color-error-subtle);
+  border-left: 3px solid var(--color-error);
+  padding-left: calc(var(--list-group-item-padding-x) - 3px);
+}
+
+.list-group-item.info {
+  background: var(--color-info-subtle);
+  border-left: 3px solid var(--color-info);
+  padding-left: calc(var(--list-group-item-padding-x) - 3px);
+}
+
+/* =====================================
+   Compact List Group
+   ===================================== */
+.list-group-compact .list-group-item {
+  padding: var(--space-2) var(--space-3);
+}
+
+/* =====================================
+   List with Icons
+   ===================================== */
+.list-icons {
+  list-style: none;
+  padding-left: 0;
+}
+
+.list-icons li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.list-icons .icon {
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 0.125rem;
+  color: var(--color-fg-muted);
+}
+
+/* =====================================
+   Two Column List
+   ===================================== */
+.list-columns-2 {
+  columns: 2;
+  column-gap: var(--space-8);
+}
+
+.list-columns-3 {
+  columns: 3;
+  column-gap: var(--space-8);
+}
+
+@media (max-width: 640px) {
+  .list-columns-2,
+  .list-columns-3 {
+    columns: 1;
+  }
+}
+
+/* =====================================
+   Breadcrumb List
+   ===================================== */
+.breadcrumb {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--font-size-sm);
+}
+
+.breadcrumb li {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0;
+}
+
+.breadcrumb li:not(:last-child)::after {
+  content: "/";
+  margin-left: var(--space-1);
+  color: var(--color-fg-subtle);
+}
+
+.breadcrumb a {
+  color: var(--color-fg-muted);
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  color: var(--color-accent);
+  text-decoration: underline;
+}
+
+.breadcrumb li:last-child {
+  color: var(--color-fg);
+  font-weight: var(--font-weight-medium);
+}
+
+/* =====================================
+   Timeline List
+   ===================================== */
+.timeline {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  position: relative;
+}
+
+.timeline::before {
+  content: "";
+  position: absolute;
+  left: 0.5rem;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--color-border);
+}
+
+.timeline li {
+  position: relative;
+  padding-left: var(--space-8);
+  padding-bottom: var(--space-6);
+  margin-bottom: 0;
+}
+
+.timeline li:last-child {
+  padding-bottom: 0;
+}
+
+.timeline li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.25rem;
+  width: 1rem;
+  height: 1rem;
+  background: var(--color-bg);
+  border: 2px solid var(--color-accent);
+  border-radius: var(--radius-full);
+}
+
+.timeline-title {
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--space-1);
+}
+
+.timeline-date {
+  font-size: var(--font-size-xs);
+  color: var(--color-fg-muted);
+  margin-bottom: var(--space-1);
+}
+
+.timeline-content {
+  color: var(--color-fg-muted);
+}
