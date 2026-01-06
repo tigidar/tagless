@@ -71,4 +71,4 @@ final case class AnchorEvents()(using o: Owner):
 
   /** Check if a specific page is currently active by element ID */
   def isPageActive(elementId: String)(using page: Page): Boolean =
-    page.switchState.visibility.currentElementId == elementId
+    page.switchState.visibility.currentElementId.contains(elementId)
