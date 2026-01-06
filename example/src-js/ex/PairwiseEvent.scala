@@ -39,12 +39,10 @@ object DomAction:
 final case class PageVisibility(currentElementId: String):
 
   /** Calculate the transition to a new page.
-    * Returns None if trying to switch to the initial welcome page (special case),
-    * otherwise returns the new state and the DOM actions needed.
+    * Returns the new state and the DOM actions needed.
     */
   def transitionTo(nextElementId: String): Option[(PageVisibility, List[DomAction])] =
-    if nextElementId == PageMap.Pages.welcomeId then None
-    else if nextElementId == currentElementId then
+    if nextElementId == currentElementId then
       // Already on this page, no transition needed
       Some((this, Nil))
     else
