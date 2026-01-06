@@ -79,8 +79,8 @@ enum Table[S <: TableBuilderState] derives CanEqual:
       ev: CanAdd.Aux[S, AddHeader, ?, THeader]
   ): Table.Head =
     self match
-      case Caption(value) =>
-        Table.Head(Vector(HRow(Vector(Cell(value)))), Some(Caption(value)))
+      case cap @ Caption(captionValue) =>
+        Table.Head(Vector(HRow(Vector(Cell(value)))), Some(cap))
       case Init => Table.Head(Vector(HRow(Vector(Cell(value)))), None)
       case _    => throw new Exception(s"Invalid state for |- operator: $self")
 
