@@ -4,6 +4,7 @@ import tags.T.*
 import tags.Aria
 import tagless.dsl.{given, *}
 import tagless.Fragment
+import html.lib.isHidden
 
 extension (e: html.lib.ErrorMessage)
   //format: off
@@ -14,7 +15,7 @@ extension (e: html.lib.ErrorMessage)
   ): Fragment =
     ~ div(
       idAttr := elementId,
-      cls := "error-message",
+      cls := s"error-message ${isHidden.value}",
       Aria.live := "polite"
     )
       >> h2(e.title, idAttr := titleId, cls := "error-title")
