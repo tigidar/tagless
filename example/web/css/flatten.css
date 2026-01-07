@@ -275,91 +275,107 @@ HSL Color Reference:
 }
 
 /* =====================================
-   Theme: Night (Dark Red)
+   Theme: Night (Dark Red - Night Vision)
+   Designed for low-light reading without
+   disrupting night vision / dark adaptation.
+   Uses dim red tones that are easy on eyes
+   in darkness and won't interfere with sleep.
    ===================================== */
 :root[data-theme="night"] {
-  --color-fg: hsl(0 0% 92%);
-  --color-fg-muted: hsl(0 10% 70%);
-  --color-fg-subtle: hsl(0 10% 55%);
+  /* Dim red text - easy to read, preserves night vision */
+  --color-fg: hsl(0 55% 58%);
+  --color-fg-muted: hsl(0 40% 45%);
+  --color-fg-subtle: hsl(0 30% 38%);
 
-  --color-bg: hsl(0 15% 8%);
-  --color-bg-subtle: hsl(0 12% 12%);
-  --color-bg-muted: hsl(0 10% 16%);
+  /* Very dark backgrounds with subtle red tint */
+  --color-bg: hsl(0 20% 5%);
+  --color-bg-subtle: hsl(0 18% 8%);
+  --color-bg-muted: hsl(0 15% 11%);
 
-  --color-border: hsl(0 20% 25%);
-  --color-border-muted: hsl(0 15% 18%);
-  --color-border-strong: hsl(0 25% 35%);
+  /* Subtle red borders */
+  --color-border: hsl(0 30% 20%);
+  --color-border-muted: hsl(0 20% 14%);
+  --color-border-strong: hsl(0 35% 28%);
 
-  --color-accent: hsl(0 78% 55%);
-  --color-accent-hover: hsl(0 78% 62%);
-  --color-accent-active: hsl(0 78% 48%);
-  --color-accent-subtle: hsl(0 50% 15%);
-  --color-accent-contrast: hsl(0 0% 100%);
+  /* Red accent - slightly brighter for interactivity */
+  --color-accent: hsl(0 60% 48%);
+  --color-accent-hover: hsl(0 65% 55%);
+  --color-accent-active: hsl(0 55% 42%);
+  --color-accent-subtle: hsl(0 40% 12%);
+  --color-accent-contrast: hsl(0 50% 90%);
 
-  --color-success: hsl(142 60% 45%);
-  --color-success-subtle: hsl(142 40% 15%);
+  /* Semantic colors - kept dim */
+  --color-success: hsl(0 45% 45%);
+  --color-success-subtle: hsl(0 30% 12%);
 
-  --color-warning: hsl(38 80% 50%);
-  --color-warning-subtle: hsl(38 60% 15%);
+  --color-warning: hsl(0 50% 48%);
+  --color-warning-subtle: hsl(0 35% 12%);
 
-  --color-error: hsl(0 72% 55%);
-  --color-error-subtle: hsl(0 50% 15%);
+  --color-error: hsl(0 55% 50%);
+  --color-error-subtle: hsl(0 40% 14%);
 
-  --color-info: hsl(200 80% 50%);
-  --color-info-subtle: hsl(200 60% 15%);
+  --color-info: hsl(0 45% 45%);
+  --color-info-subtle: hsl(0 30% 12%);
 
-  --color-selection-bg: hsl(0 50% 25%);
+  --color-selection-bg: hsl(0 40% 18%);
 
   --shadow-color: 0 0% 0%;
 
-  --scrollbar-track: hsl(0 10% 12%);
-  --scrollbar-thumb: hsl(0 15% 30%);
-  --scrollbar-thumb-hover: hsl(0 20% 40%);
+  --scrollbar-track: hsl(0 15% 6%);
+  --scrollbar-thumb: hsl(0 25% 22%);
+  --scrollbar-thumb-hover: hsl(0 30% 30%);
 
   color-scheme: dark;
 }
 
 /* =====================================
-   Theme: Dark (System Dark)
+   Theme: Dark (Neutral Grey)
+   A neutral grey dark theme without
+   strong color bias - easy on the eyes.
    ===================================== */
 :root[data-theme="dark"] {
-  --color-fg: hsl(220 15% 92%);
-  --color-fg-muted: hsl(220 10% 70%);
-  --color-fg-subtle: hsl(220 10% 55%);
+  /* Neutral grey text */
+  --color-fg: hsl(0 0% 85%);
+  --color-fg-muted: hsl(0 0% 62%);
+  --color-fg-subtle: hsl(0 0% 48%);
 
-  --color-bg: hsl(220 15% 10%);
-  --color-bg-subtle: hsl(220 13% 14%);
-  --color-bg-muted: hsl(220 11% 18%);
+  /* Pure grey backgrounds */
+  --color-bg: hsl(0 0% 10%);
+  --color-bg-subtle: hsl(0 0% 13%);
+  --color-bg-muted: hsl(0 0% 17%);
 
-  --color-border: hsl(220 12% 25%);
-  --color-border-muted: hsl(220 10% 18%);
-  --color-border-strong: hsl(220 14% 35%);
+  /* Grey borders */
+  --color-border: hsl(0 0% 25%);
+  --color-border-muted: hsl(0 0% 18%);
+  --color-border-strong: hsl(0 0% 35%);
 
-  --color-accent: hsl(220 90% 60%);
-  --color-accent-hover: hsl(220 90% 68%);
-  --color-accent-active: hsl(220 90% 52%);
-  --color-accent-subtle: hsl(220 50% 18%);
+  /* Muted blue accent - still distinguishable */
+  --color-accent: hsl(210 30% 55%);
+  --color-accent-hover: hsl(210 35% 62%);
+  --color-accent-active: hsl(210 28% 48%);
+  --color-accent-subtle: hsl(210 20% 18%);
   --color-accent-contrast: hsl(0 0% 100%);
 
-  --color-success: hsl(142 60% 50%);
-  --color-success-subtle: hsl(142 40% 15%);
+  /* Semantic colors - desaturated for grey theme */
+  --color-success: hsl(142 35% 48%);
+  --color-success-subtle: hsl(142 20% 15%);
 
-  --color-warning: hsl(38 85% 55%);
-  --color-warning-subtle: hsl(38 60% 15%);
+  --color-warning: hsl(38 55% 52%);
+  --color-warning-subtle: hsl(38 35% 15%);
 
-  --color-error: hsl(0 72% 58%);
-  --color-error-subtle: hsl(0 50% 18%);
+  --color-error: hsl(0 50% 55%);
+  --color-error-subtle: hsl(0 30% 18%);
 
-  --color-info: hsl(200 85% 55%);
-  --color-info-subtle: hsl(200 60% 15%);
+  --color-info: hsl(200 40% 52%);
+  --color-info-subtle: hsl(200 25% 15%);
 
-  --color-selection-bg: hsl(220 50% 30%);
+  --color-selection-bg: hsl(0 0% 30%);
 
-  --shadow-color: 220 50% 3%;
+  --shadow-color: 0 0% 0%;
 
-  --scrollbar-track: hsl(220 12% 12%);
-  --scrollbar-thumb: hsl(220 10% 35%);
-  --scrollbar-thumb-hover: hsl(220 10% 45%);
+  --scrollbar-track: hsl(0 0% 12%);
+  --scrollbar-thumb: hsl(0 0% 32%);
+  --scrollbar-thumb-hover: hsl(0 0% 42%);
 
   color-scheme: dark;
 }
