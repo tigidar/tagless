@@ -32,6 +32,18 @@ def keywordsMeta(keywords: String) =
 def stylesheetLink(hrefValue: String): Node[VoidType, HTMLLinkElement] =
   linkTag(rel := "stylesheet", href := hrefValue)
 
+
+def stylesheets = Vector(
+  "modern-normalize",
+  "flatten",
+  "button",
+  "form",
+  "table",
+  "list",
+  "layout",
+  "styles"
+  ).reverse.map(name => s"/css/$name.css")
+
 def styleSheetsLinks(stylesheetPath: String, stylesheetPaths: String*): Vector[Node[VoidType, HTMLLinkElement]] =
   (stylesheetPath +: stylesheetPaths.toVector).map(stylesheetLink)
 
@@ -45,12 +57,6 @@ def headBlock(titleText: String, colorScheme: ColorTheme) =
       > titleTag(titleText)
       > linkTag(rel := "icon", tpe := "image/svg+xml", href := "/vite.svg")
       > linkTag(rel := "apple-touch-icon", href := "/apple-touch-icon.png")
-      > styleSheetsLinks(
-          "/css/modern-normalize.css",
-          "/css/flatten.css",
-          "/css/layout.css",
-          "/css/styles.css"
-        )
+      > styleSheetsLinks(stylesheets.head, stylesheets.tail*)
       >^ colorSchemeMeta(colorScheme)
-
 
