@@ -154,25 +154,22 @@ final class RouteBuilder[Page]:
  * Builder for index page assignment.
  */
 final class IndexBuilder[Page](parent: RouteBuilder[Page]):
-  def ->(page: Page): RouteBuilder[Page] =
+  def ~>(page: Page): Unit =
     parent.setIndexPage(page)
-    parent
 
 /**
  * Builder for child routes.
  */
 final class ChildBuilder[Page](parent: RouteBuilder[Page], edge: EdgeLabel):
   /** This is a leaf route */
-  def ->(page: Page): RouteBuilder[Page] =
+  def ~>(page: Page): Unit =
     parent.addChild(edge, RouteNode.leaf(page))
-    parent
-  
+
   /** This route has children */
-  def /(block: RouteBuilder[Page] ?=> Unit): RouteBuilder[Page] =
+  def /(block: RouteBuilder[Page] ?=> Unit): Unit =
     val childBuilder = new RouteBuilder[Page]
     block(using childBuilder)
     parent.addChild(edge, childBuilder.build)
-    parent
 
 // =============================================================================
 // CONVENIENT DSL SYNTAX
@@ -195,9 +192,9 @@ extension (segment: String)
     val childBuilder = new RouteBuilder[Page]
     block(using childBuilder)
     parent.addChild(EdgeLabel.Literal(segment), childBuilder.build)
-  
+
   /** Create a leaf route with literal segment */
-  def ->[Page](page: Page)(using parent: RouteBuilder[Page]): Unit =
+  def ~>[Page](page: Page)(using parent: RouteBuilder[Page]): Unit =
     parent.addChild(EdgeLabel.Literal(segment), RouteNode.leaf(page))
 
 /**
@@ -209,9 +206,9 @@ extension [A](paramDef: ParamDef[A])
     val childBuilder = new RouteBuilder[Page]
     block(using childBuilder)
     parent.addChild(paramDef.toEdgeLabel, childBuilder.build)
-  
+
   /** Create a leaf route with param segment */
-  def ->[Page](page: Page)(using parent: RouteBuilder[Page]): Unit =
+  def ~>[Page](page: Page)(using parent: RouteBuilder[Page]): Unit =
     parent.addChild(paramDef.toEdgeLabel, RouteNode.leaf(page))
 
 /**
@@ -239,15 +236,15 @@ object params:
 
 /** Set metadata in DSL */
 def withMeta[Page](meta: RouteMeta)(using parent: RouteBuilder[Page]): Unit =
-  parent.withMeta(meta)
+  val _ = parent.withMeta(meta)
 
 /** Set title */
 def title[Page](t: String)(using parent: RouteBuilder[Page]): Unit =
-  parent.withMeta(RouteMeta(title = Some(t)))
+  val _ = parent.withMeta(RouteMeta(title = Some(t)))
 
 /** Mark as requiring auth */
 def requireAuth[Page](using parent: RouteBuilder[Page]): Unit =
-  parent.withMeta(RouteMeta(requiresAuth = true))
+  val _ = parent.withMeta(RouteMeta(requiresAuth = true))
 
 // =============================================================================
 // QUERY PARAM DSL
@@ -257,7 +254,7 @@ def requireAuth[Page](using parent: RouteBuilder[Page]): Unit =
  * Define a route with typed query parameters.
  */
 def withQuery[Q, Page](codec: QueryCodec[Q])(block: RouteBuilder[Page] ?=> Unit)(using parent: RouteBuilder[Page]): Unit =
-  parent.withQueryCodec(codec)
+  val _ = parent.withQueryCodec(codec)
   block
 
 // =============================================================================

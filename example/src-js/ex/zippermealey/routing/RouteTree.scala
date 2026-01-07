@@ -123,7 +123,7 @@ object RouteNode:
   *
   * This is the heart of URL → Route matching.
   */
-enum EdgeLabel:
+enum EdgeLabel derives CanEqual:
   /** A literal segment - matches exactly. Example: "users" matches only the
     * segment "users"
     */

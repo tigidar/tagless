@@ -1,11 +1,11 @@
-# Zipper-Mealy State Management PoC
+# Zipper-Mealy Routing Concept
 
-A proof of concept demonstrating hierarchical UI state management using:
-- **Huet's Zipper** for navigating and updating tree-structured state
+A proof of concept demonstrating URL-based routing for SPAs using:
+- **Huet's Zipper** for navigating and updating tree-structured routes
 - **Mealy Machines** for modeling state transitions
 - **Airstream** for reactive stream processing
 - **URI-based Routing** with a declarative DSL
-- **Functional Programming** principles throughout
+- **Browser History** integration for back/forward navigation
 
 ## Conceptual Overview
 
@@ -76,27 +76,27 @@ docs/
 
 ## The Routing DSL
 
-Define routes declaratively:
+Define routes declaratively using `~>` for page assignments:
 
 ```scala
 val userId = ParamDef.long("userId")
 val postId = ParamDef.long("postId")
 
 val routes = routes[Page] {
-  index -> HomePage
-  
+  index ~> HomePage
+
   "users" / {
-    index -> UserListPage
+    index ~> UserListPage
     userId / {
-      index -> UserProfilePage
+      index ~> UserProfilePage
       "posts" / {
-        index -> UserPostsPage
-        postId -> PostDetailPage
+        index ~> UserPostsPage
+        postId ~> PostDetailPage
       }
     }
   }
-  
-  "about" -> AboutPage
+
+  "about" ~> AboutPage
 }
 ```
 

@@ -55,26 +55,26 @@ import org.scalajs.dom.{window, PopStateEvent}
 /**
  * Navigation mode for URL handling.
  */
-enum HistoryMode:
+enum HistoryMode derives CanEqual:
   case Path  // Uses real paths: /users/123
   case Hash  // Uses hash: /#/users/123
 
 /**
  * Commands for history manipulation.
  */
-enum HistoryCommand:
+enum HistoryCommand derives CanEqual:
   /** Navigate to a new URI, adding a history entry */
   case Push(uri: Uri)
-  
+
   /** Replace current URI without adding history entry */
   case Replace(uri: Uri)
-  
+
   /** Go back n entries (negative to go forward) */
   case Go(delta: Int)
-  
+
   /** Convenience for Go(-1) */
   case Back
-  
+
   /** Convenience for Go(1) */
   case Forward
 
@@ -123,7 +123,7 @@ final class BrowserHistory(
   window.addEventListener("popstate", popstateListener)
   
   // Process navigation commands
-  commandBus.events.foreach {
+  private val commandSubscription = commandBus.events.foreach {
     case HistoryCommand.Push(uri) => doPush(uri)
     case HistoryCommand.Replace(uri) => doReplace(uri)
     case HistoryCommand.Go(delta) => window.history.go(delta)
@@ -207,7 +207,7 @@ final class RouterStore[Page](
   )
   
   // Sync zipper with history
-  history.currentUri.foreach { uri =>
+  private val historySyncSubscription = history.currentUri.foreach { uri =>
     RouteZipper.fromUri(router.root, uri).foreach(zipperVar.set)
   }
   

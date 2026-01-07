@@ -47,10 +47,10 @@ import scala.util.{Try, Success, Failure}
  * At the SCHEMA level (route definition), we have patterns.
  * At the INSTANCE level (actual URL), we have resolved values.
  */
-enum PathSegment:
+enum PathSegment derives CanEqual:
   /** A literal path segment like "users" or "settings" */
   case Literal(value: String)
-  
+
   /** A captured dynamic segment with its parameter name and value */
   case Captured(paramName: String, value: String)
   
@@ -76,13 +76,13 @@ enum PathSegment:
 /**
  * A pattern for matching path segments (used in route definitions).
  */
-enum SegmentPattern:
+enum SegmentPattern derives CanEqual:
   /** Match a literal string exactly */
   case Literal(value: String)
-  
+
   /** Capture a dynamic value with the given parameter name */
   case Param(name: String)
-  
+
   /** Match anything */
   case Wildcard
   
@@ -143,10 +143,12 @@ final case class Path(segments: List[PathSegment]):
 object Path:
   /** The root path */
   val root: Path = Path(Nil)
-  
+
   /** Create from a list of literal strings */
-  def apply(segments: String*): Path = 
+  def apply(segments: String*): Path =
     Path(segments.toList.map(PathSegment.Literal(_)))
+
+  given CanEqual[Path, Path] = CanEqual.derived
   
   /** Parse a path string */
   def parse(pathString: String): Either[ParseError, Path] =
@@ -326,19 +328,21 @@ object Uri:
   /** Parse a complete URI string */
   def parse(uriString: String): Either[ParseError, Uri] =
     // Split into path, query, fragment
-    val (pathAndQuery, fragment) = uriString.split("#", 2) match
+    val (pathAndQuery, fragmentStr) = uriString.split("#", 2) match
       case Array(pq, f) => (pq, Some(f))
       case Array(pq) => (pq, None)
-    
+
     val (pathStr, queryStr) = pathAndQuery.split("\\?", 2) match
       case Array(p, q) => (p, Some(q))
       case Array(p) => (p, None)
-    
+
     for
       path <- Path.parse(pathStr)
       query <- queryStr.map(Query.parse).getOrElse(Right(Query.empty))
-      frag <- fragment.map(Fragment.parse).getOrElse(Right(None)).map(Some(_)).left.map(identity).map(_.flatten)
-    yield Uri(path, query, frag.flatten)
+      frag <- fragmentStr match
+        case Some(f) => Fragment.parse(f).map(Some(_))
+        case None => Right(None)
+    yield Uri(path, query, frag)
 
 // =============================================================================
 // PARSE ERRORS

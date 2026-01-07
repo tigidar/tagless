@@ -138,42 +138,42 @@ object Example4_Routing:
    */
   val routeTree: RouteNode[Page] = routes[Page] {
     // Root: Home page
-    index -> Page.Home
-    
+    index ~> Page.Home
+
     // /users branch
     "users" / {
-      index -> Page.UserList(UserFilters(None, None))
-      
+      index ~> Page.UserList(UserFilters(None, None))
+
       // /users/:userId branch
       userId / {
-        index -> Page.UserProfile(UserId(0)) // Placeholder, real ID from params
-        
+        index ~> Page.UserProfile(UserId(0)) // Placeholder, real ID from params
+
         // /users/:userId/posts branch
         "posts" / {
-          index -> Page.UserPosts(UserId(0))
-          
+          index ~> Page.UserPosts(UserId(0))
+
           // /users/:userId/posts/:postId
-          postId -> Page.PostDetail(PostId(0), PostContext.Standalone)
+          postId ~> Page.PostDetail(PostId(0), PostContext.Standalone)
         }
       }
     }
-    
+
     // /posts branch
     "posts" / {
-      index -> Page.AllPosts(PostFilters(None, None))
-      
+      index ~> Page.AllPosts(PostFilters(None, None))
+
       // /posts/:postId
-      postId -> Page.PostDetail(PostId(0), PostContext.Standalone)
+      postId ~> Page.PostDetail(PostId(0), PostContext.Standalone)
     }
-    
+
     // /about (leaf)
-    "about" -> Page.About
-    
+    "about" ~> Page.About
+
     // /settings branch
     "settings" / {
-      index -> Page.Settings
-      "profile" -> Page.ProfileSettings
-      "notifications" -> Page.NotificationSettings
+      index ~> Page.Settings
+      "profile" ~> Page.ProfileSettings
+      "notifications" ~> Page.NotificationSettings
     }
   }
   
@@ -320,10 +320,12 @@ object Example4_Routing:
     testUris.foreach { uriStr =>
       val result = router.matchUriString(uriStr)
       val status = result match
-        case Right(RouteResult.Matched(route)) => 
+        case Right(RouteResult.Matched(route)) =>
           s"✓ ${route.page.toString.take(40)}"
         case Right(RouteResult.NotFound(_, partial)) =>
           s"✗ Not found (partial: ${partial.isDefined})"
+        case Right(RouteResult.Redirect(from, to)) =>
+          s"↪ Redirect from ${from.render} to ${to.render}"
         case Left(err) =>
           s"✗ Parse error: $err"
       println(s"   $uriStr → $status")
@@ -432,9 +434,9 @@ object Example4_Routing:
 // HELPER EXTENSIONS FOR DEMO
 // ===========================================================================
 
-extension [A](read: Read[A])
+extension [A](readA: Read[A])
   def map[B](f: A => B): Read[B] = new Read[B]:
-    def read(s: String) = read.read(s).map(f)
+    def read(s: String) = readA.read(s).map(f)
 
-extension [A](show: Show[A])
-  def contramap[B](f: B => A): Show[B] = b => show.show(f(b))
+extension [A](showA: Show[A])
+  def contramap[B](f: B => A): Show[B] = b => showA.show(f(b))

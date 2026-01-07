@@ -177,28 +177,30 @@ URL String          URI ADT           RouteZipper          Page + Params
 
 ### The DSL
 
+Note: The DSL uses `~>` instead of `->` to avoid conflicts with Scala's tuple syntax.
+
 ```scala
 val routes = routes[Page] {
   // Root index
-  index -> HomePage
-  
+  index ~> HomePage
+
   // Literal segment with children
   "users" / {
-    index -> UserListPage
-    
+    index ~> UserListPage
+
     // Parameterized segment
     userId / {
-      index -> UserProfilePage
-      
+      index ~> UserProfilePage
+
       "posts" / {
-        index -> UserPostsPage
-        postId -> PostDetailPage
+        index ~> UserPostsPage
+        postId ~> PostDetailPage
       }
     }
   }
-  
+
   // Simple leaf route
-  "about" -> AboutPage
+  "about" ~> AboutPage
 }
 ```
 
@@ -426,11 +428,11 @@ val userId = ParamDef.long("userId")
 
 // 3. Define routes with DSL
 val routeTree = routes[Page] {
-  index -> Page.Home
+  index ~> Page.Home
   "users" / {
-    index -> Page.UserList
+    index ~> Page.UserList
     userId / {
-      index -> Page.UserProfile(UserId(0)) // Placeholder
+      index ~> Page.UserProfile(UserId(0)) // Placeholder
     }
   }
 }
@@ -456,12 +458,12 @@ store.currentPage.foreach {
 ## Appendix: DSL Quick Reference
 
 ```scala
-// Route definition
+// Route definition (note: use ~> instead of ->)
 routes[Page] {
-  index -> HomePage              // Index page for this level
-  "literal" -> LeafPage          // Literal leaf route
+  index ~> HomePage              // Index page for this level
+  "literal" ~> LeafPage          // Literal leaf route
   "literal" / { ... }            // Literal with children
-  paramDef -> LeafPage           // Param leaf route
+  paramDef ~> LeafPage           // Param leaf route
   paramDef / { ... }             // Param with children
 }
 

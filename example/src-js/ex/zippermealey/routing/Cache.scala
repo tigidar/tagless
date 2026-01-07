@@ -108,12 +108,12 @@ final class InMemoryCache[K, V](
       case Some(entry) if !entry.isExpired(clock()) =>
         _hits += 1
         // Move to end (LRU)
-        entries.remove(key)
-        entries.put(key, entry)
+        val _ = entries.remove(key)
+        val _ = entries.put(key, entry)
         Some(entry.value)
       case Some(_) =>
         // Expired
-        entries.remove(key)
+        val _ = entries.remove(key)
         _misses += 1
         None
       case None =>
@@ -128,12 +128,12 @@ final class InMemoryCache[K, V](
     // Evict if at capacity
     while entries.size >= maxSize do
       entries.headOption.foreach { case (k, _) =>
-        entries.remove(k)
+        val _ = entries.remove(k)
         _evictions += 1
       }
-    
+
     val entry = CacheEntry(value, clock(), ttl.toMillis)
-    entries.put(key, entry)
+    val _ = entries.put(key, entry)
   }
   
   def remove(key: K): Option[V] = synchronized {
@@ -221,13 +221,13 @@ final class DefaultCachedLoader[K, V](
             // Start new fetch
             val future = fetcher(key).map { result =>
               result.foreach(v => cache.put(key, v))
-              synchronized { inFlight.remove(key) }
+              synchronized { val _ = inFlight.remove(key) }
               result
             }.recover { case _ =>
-              synchronized { inFlight.remove(key) }
+              synchronized { val _ = inFlight.remove(key) }
               None
             }
-            inFlight.put(key, future)
+            val _ = inFlight.put(key, future)
             future
   }
   
@@ -250,7 +250,8 @@ final class DefaultCachedLoader[K, V](
         cachedResults ++ fetched
       }
   
-  def invalidate(key: K): Unit = cache.remove(key)
+  def invalidate(key: K): Unit =
+    val _ = cache.remove(key)
   
   def invalidateAll(): Unit = cache.clear()
   
@@ -289,10 +290,10 @@ trait LoaderRegistry:
 
 final class DefaultLoaderRegistry extends LoaderRegistry:
   private val loaders = mutable.Map.empty[String, CachedLoader[?, ?]]
-  
+
   def register[K, V](name: String, loader: CachedLoader[K, V]): Unit =
-    loaders.put(name, loader)
-  
+    val _ = loaders.put(name, loader)
+
   def get[K, V](name: String): Option[CachedLoader[K, V]] =
     loaders.get(name).map(_.asInstanceOf[CachedLoader[K, V]])
 
