@@ -1,0 +1,421 @@
+//| mill-version: 1.1.2
+//| mill-jvm-version: system
+
+package build
+
+import mill.*
+import mill.scalalib.*
+import mill.scalajslib.*
+import mill.scalajslib.api.*
+import mill.scalalib.publish.*
+
+// ---------------------------------------------------------------------------
+// Versions — single source of truth, inlined per breakout guidance
+// (deviates from tech/decisions/deps-single-file while standalone).
+// ---------------------------------------------------------------------------
+
+object V {
+  val scala          = "3.8.3"
+  val scalaVersions  = Seq(scala)
+  val scalaJS        = "1.20.1"
+
+  val organization   = "no.virtual-architect"
+  val projectVersion = "0.1.0-SNAPSHOT"
+
+  // External libs
+  val domtypes  = "19.0.0"
+  val airstream = "17.2.1"
+  val raquoEw   = "0.2.0"
+
+  // Test infra
+  val munit            = "1.2.1"
+  val munitScalaCheck  = "1.1.0"
+  val osLib            = "0.11.5"
+  val pprint           = "0.9.4"
+  val sourcecode       = "0.4.4"
+}
+
+// ---------------------------------------------------------------------------
+// Shared traits
+//
+// Layout convention:
+//   <module>/src/             — shared sources
+//   <module>/src-jvm/         — JVM-only sources (when divergence exists)
+//   <module>/src-js/          — JS-only sources
+//   <module>/test/src/        — shared test sources
+//   <module>/<platform>/      — empty Cross-variant moduleDir
+//
+// `sharedSrc` pulls <module>/src/ from inside <module>/<platform>/ via
+// `os.up`; ditto `sharedTestSrc` from <module>/<platform>/test/.
+// ---------------------------------------------------------------------------
+
+trait TaglessPublish extends PublishModule {
+  def publishVersion = V.projectVersion
+
+  def pomSettings = PomSettings(
+    description    = "Tagless — a type-safe HTML DSL for Scala 3 (Zipper-based).",
+    organization   = V.organization,
+    url            = "https://github.com/tigidar/tagless",
+    licenses       = Seq(License.`Apache-2.0`),
+    versionControl = VersionControl.github("tigidar", "tagless"),
+    developers     = Seq(
+      Developer(
+        id              = "tigidar",
+        name            = "tigidar",
+        url             = "https://github.com/tigidar",
+        organization    = Some("virtual-architect"),
+        organizationUrl = Some("https://virtual-architect.no")
+      )
+    )
+  )
+
+  // Default — every concrete module overrides this to its kebab form.
+  def artifactName: T[String] = "tagless"
+}
+
+trait TaglessCommon extends CrossScalaModule with TaglessPublish {
+
+  def scalacOptions = Seq(
+    "-encoding", "utf8",
+    "-feature",
+    "-unchecked",
+    "-deprecation",
+    "-Wunused:all",
+    "-Wvalue-discard",
+    "-Wnonunit-statement",
+    "-language:strictEquality",
+    "-language:implicitConversions",
+    "-release", "21",
+    "-Ykind-projector"
+  )
+
+  // moduleDir of <module>.<platform>[v] is <module>/<platform>/, one `os.up`
+  // hop lands on <module>/.
+  def sharedSrc = Task.Sources(moduleDir / os.up / "src")
+  override def sources = Task { super.sources() ++ sharedSrc() }
+}
+
+// Optional traits adding platform-specific src dirs. Only mixed in by modules
+// that actually have <module>/src-jvm/ or <module>/src-js/ divergences.
+trait HasSrcJvm extends TaglessCommon {
+  def srcJvm = Task.Sources(moduleDir / os.up / "src-jvm")
+  override def sources = Task { super.sources() ++ srcJvm() }
+}
+trait HasSrcJs extends TaglessCommon {
+  def srcJs = Task.Sources(moduleDir / os.up / "src-js")
+  override def sources = Task { super.sources() ++ srcJs() }
+}
+
+// Shared test trait. moduleDir of <module>.<platform>[v].test is
+// <module>/<platform>/test/, so two `os.up` hops land on <module>/.
+trait TaglessTestSources extends ScalaModule {
+  def sharedTestSrc = Task.Sources(moduleDir / os.up / os.up / "test" / "src")
+  override def sources = Task { super.sources() ++ sharedTestSrc() }
+}
+
+trait TaglessTest extends TestModule.Munit, TaglessTestSources {
+  def munitVersion = V.munit
+  override def defaultTask(): String = "test"
+  override def mvnDeps = super.mvnDeps() ++ Seq(
+    mvn"org.scalameta::munit::${V.munit}",
+    mvn"org.scalameta::munit-scalacheck::${V.munitScalaCheck}",
+    mvn"com.lihaoyi::os-lib::${V.osLib}",
+    mvn"com.lihaoyi::pprint::${V.pprint}",
+    mvn"com.lihaoyi::sourcecode::${V.sourcecode}"
+  )
+}
+
+// ---------------------------------------------------------------------------
+// htmlid — typesafe HTML IDs (HtmlId, IdScope, RouteScope)
+// ---------------------------------------------------------------------------
+object htmlid extends Module {
+  trait JvmModule extends TaglessCommon {
+    override def artifactName = "tagless-htmlid"
+  }
+  object jvm extends Cross[JvmModule](V.scalaVersions)
+
+  trait JsModule extends TaglessCommon, ScalaJSModule {
+    override def artifactName  = "tagless-htmlid"
+    def scalaJSVersion         = V.scalaJS
+  }
+  object js extends Cross[JsModule](V.scalaVersions)
+}
+
+// ---------------------------------------------------------------------------
+// core — Cursor/Tag/Node/dsl/attrs/classes/Fragment/render + HtmlId<->Attr bridge
+// JVM and JS both have src-jvm/ and src-js/ for the DerivedStyleBuilder.
+// ---------------------------------------------------------------------------
+object core extends Module {
+  trait JvmModule extends HasSrcJvm {
+    override def artifactName = "tagless-core"
+    override def moduleDeps   = Seq(htmlid.jvm(crossScalaVersion), i18n.jvm(crossScalaVersion))
+    override def mvnDeps      = super.mvnDeps() ++ Seq(mvn"com.raquo::domtypes::${V.domtypes}")
+    object test extends ScalaTests, TaglessTest
+  }
+  object jvm extends Cross[JvmModule](V.scalaVersions)
+
+  trait JsModule extends HasSrcJs, ScalaJSModule {
+    override def artifactName = "tagless-core"
+    def scalaJSVersion        = V.scalaJS
+    override def moduleDeps   = Seq(htmlid.js(crossScalaVersion), i18n.js(crossScalaVersion))
+    override def mvnDeps      = super.mvnDeps() ++ Seq(
+      mvn"com.raquo::domtypes::${V.domtypes}",
+      mvn"com.raquo::ew::${V.raquoEw}"
+    )
+  }
+  object js extends Cross[JsModule](V.scalaVersions)
+}
+
+// ---------------------------------------------------------------------------
+// i18n — typesafe internationalization (I18n, Lang, TextScope)
+// ---------------------------------------------------------------------------
+object i18n extends Module {
+  trait JvmModule extends TaglessCommon {
+    override def artifactName = "tagless-i18n"
+  }
+  object jvm extends Cross[JvmModule](V.scalaVersions)
+
+  trait JsModule extends TaglessCommon, ScalaJSModule {
+    override def artifactName = "tagless-i18n"
+    def scalaJSVersion        = V.scalaJS
+  }
+  object js extends Cross[JsModule](V.scalaVersions)
+}
+
+// ---------------------------------------------------------------------------
+// md — wiki-style markdown DSL  (package md)
+// ---------------------------------------------------------------------------
+object md extends Module {
+  trait JvmModule extends TaglessCommon {
+    override def artifactName = "tagless-md"
+    override def moduleDeps   = Seq(core.jvm(crossScalaVersion), i18n.jvm(crossScalaVersion))
+    object test extends ScalaTests, TaglessTest
+  }
+  object jvm extends Cross[JvmModule](V.scalaVersions)
+
+  trait JsModule extends TaglessCommon, ScalaJSModule {
+    override def artifactName = "tagless-md"
+    def scalaJSVersion        = V.scalaJS
+    override def moduleDeps   = Seq(core.js(crossScalaVersion), i18n.js(crossScalaVersion))
+  }
+  object js extends Cross[JsModule](V.scalaVersions)
+}
+
+// ---------------------------------------------------------------------------
+// meta — convenience builders for <meta> tags
+// ---------------------------------------------------------------------------
+object meta extends Module {
+  trait JvmModule extends TaglessCommon {
+    override def artifactName = "tagless-meta"
+    override def moduleDeps   = Seq(core.jvm(crossScalaVersion))
+    object test extends ScalaTests, TaglessTest
+  }
+  object jvm extends Cross[JvmModule](V.scalaVersions)
+
+  trait JsModule extends TaglessCommon, ScalaJSModule {
+    override def artifactName = "tagless-meta"
+    def scalaJSVersion        = V.scalaJS
+    override def moduleDeps   = Seq(core.js(crossScalaVersion))
+  }
+  object js extends Cross[JsModule](V.scalaVersions)
+}
+
+// ---------------------------------------------------------------------------
+// page — high-level Page builder
+// ---------------------------------------------------------------------------
+object page extends Module {
+  trait JvmModule extends TaglessCommon {
+    override def artifactName = "tagless-page"
+    override def moduleDeps   = Seq(
+      core.jvm(crossScalaVersion),
+      i18n.jvm(crossScalaVersion),
+      meta.jvm(crossScalaVersion)
+    )
+    object test extends ScalaTests, TaglessTest
+  }
+  object jvm extends Cross[JvmModule](V.scalaVersions)
+
+  trait JsModule extends TaglessCommon, ScalaJSModule {
+    override def artifactName = "tagless-page"
+    def scalaJSVersion        = V.scalaJS
+    override def moduleDeps   = Seq(
+      core.js(crossScalaVersion),
+      i18n.js(crossScalaVersion),
+      meta.js(crossScalaVersion)
+    )
+  }
+  object js extends Cross[JsModule](V.scalaVersions)
+}
+
+// ---------------------------------------------------------------------------
+// form — type-state Form DSL  (package html.lib.form)
+// JS variant adds FormPopulator (uses scalajs.dom).
+// ---------------------------------------------------------------------------
+object form extends Module {
+  trait JvmModule extends TaglessCommon {
+    override def artifactName = "tagless-form"
+    override def moduleDeps   = Seq(core.jvm(crossScalaVersion), i18n.jvm(crossScalaVersion))
+    object test extends ScalaTests, TaglessTest
+  }
+  object jvm extends Cross[JvmModule](V.scalaVersions)
+
+  trait JsModule extends HasSrcJs, ScalaJSModule {
+    override def artifactName = "tagless-form"
+    def scalaJSVersion        = V.scalaJS
+    override def moduleDeps   = Seq(core.js(crossScalaVersion), i18n.js(crossScalaVersion))
+  }
+  object js extends Cross[JsModule](V.scalaVersions)
+}
+
+// ---------------------------------------------------------------------------
+// table — type-state Table DSL  (package html.lib.table)
+// ---------------------------------------------------------------------------
+object table extends Module {
+  trait JvmModule extends TaglessCommon {
+    override def artifactName = "tagless-table"
+    override def moduleDeps   = Seq(core.jvm(crossScalaVersion), i18n.jvm(crossScalaVersion))
+    object test extends ScalaTests, TaglessTest
+  }
+  object jvm extends Cross[JvmModule](V.scalaVersions)
+
+  trait JsModule extends TaglessCommon, ScalaJSModule {
+    override def artifactName = "tagless-table"
+    def scalaJSVersion        = V.scalaJS
+    override def moduleDeps   = Seq(core.js(crossScalaVersion), i18n.js(crossScalaVersion))
+  }
+  object js extends Cross[JsModule](V.scalaVersions)
+}
+
+// ---------------------------------------------------------------------------
+// crud — view/edit CRUD scaffolding (depends on form)
+// ---------------------------------------------------------------------------
+object crud extends Module {
+  trait JvmModule extends TaglessCommon {
+    override def artifactName = "tagless-crud"
+    override def moduleDeps   = Seq(
+      core.jvm(crossScalaVersion),
+      i18n.jvm(crossScalaVersion),
+      form.jvm(crossScalaVersion)
+    )
+  }
+  object jvm extends Cross[JvmModule](V.scalaVersions)
+
+  trait JsModule extends TaglessCommon, ScalaJSModule {
+    override def artifactName = "tagless-crud"
+    def scalaJSVersion        = V.scalaJS
+    override def moduleDeps   = Seq(
+      core.js(crossScalaVersion),
+      i18n.js(crossScalaVersion),
+      form.js(crossScalaVersion)
+    )
+  }
+  object js extends Cross[JsModule](V.scalaVersions)
+}
+
+// ---------------------------------------------------------------------------
+// route — RouteExtractor: derive client-side route maps from typed IDs
+// ---------------------------------------------------------------------------
+object route extends Module {
+  trait JvmModule extends TaglessCommon {
+    override def artifactName = "tagless-route"
+    override def moduleDeps   = Seq(core.jvm(crossScalaVersion))
+  }
+  object jvm extends Cross[JvmModule](V.scalaVersions)
+
+  trait JsModule extends TaglessCommon, ScalaJSModule {
+    override def artifactName = "tagless-route"
+    def scalaJSVersion        = V.scalaJS
+    override def moduleDeps   = Seq(core.js(crossScalaVersion))
+  }
+  object js extends Cross[JsModule](V.scalaVersions)
+}
+
+// ---------------------------------------------------------------------------
+// viz — tree visualization (ASCII / D3 / Mermaid renderers)
+// ---------------------------------------------------------------------------
+object viz extends Module {
+  trait JvmModule extends TaglessCommon {
+    override def artifactName = "tagless-viz"
+    override def moduleDeps   = Seq(core.jvm(crossScalaVersion))
+    object test extends ScalaTests, TaglessTest {
+      override def moduleDeps = super.moduleDeps ++ Seq(i18n.jvm(crossScalaVersion))
+    }
+  }
+  object jvm extends Cross[JvmModule](V.scalaVersions)
+
+  trait JsModule extends TaglessCommon, ScalaJSModule {
+    override def artifactName = "tagless-viz"
+    def scalaJSVersion        = V.scalaJS
+    override def moduleDeps   = Seq(core.js(crossScalaVersion))
+  }
+  object js extends Cross[JsModule](V.scalaVersions)
+}
+
+// ---------------------------------------------------------------------------
+// htmx — HTMX attribute extensions
+// ---------------------------------------------------------------------------
+object htmx extends Module {
+  trait JvmModule extends TaglessCommon {
+    override def artifactName = "tagless-htmx"
+    override def moduleDeps   = Seq(core.jvm(crossScalaVersion))
+    object test extends ScalaTests, TaglessTest
+  }
+  object jvm extends Cross[JvmModule](V.scalaVersions)
+
+  trait JsModule extends TaglessCommon, ScalaJSModule {
+    override def artifactName = "tagless-htmx"
+    def scalaJSVersion        = V.scalaJS
+    override def moduleDeps   = Seq(core.js(crossScalaVersion))
+  }
+  object js extends Cross[JsModule](V.scalaVersions)
+}
+
+// ---------------------------------------------------------------------------
+// svg — SVG tags and attributes (formerly svgelements)
+// ---------------------------------------------------------------------------
+object svg extends Module {
+  trait JvmModule extends TaglessCommon {
+    override def artifactName = "tagless-svg"
+    override def moduleDeps   = Seq(core.jvm(crossScalaVersion))
+    object test extends ScalaTests, TaglessTest
+  }
+  object jvm extends Cross[JvmModule](V.scalaVersions)
+
+  trait JsModule extends TaglessCommon, ScalaJSModule {
+    override def artifactName = "tagless-svg"
+    def scalaJSVersion        = V.scalaJS
+    override def moduleDeps   = Seq(core.js(crossScalaVersion))
+  }
+  object js extends Cross[JsModule](V.scalaVersions)
+}
+
+// ---------------------------------------------------------------------------
+// events — Airstream-based DOM event handling (JS only)
+// ---------------------------------------------------------------------------
+object events extends Module {
+  trait JsModule extends TaglessCommon, ScalaJSModule {
+    override def artifactName = "tagless-events"
+    def scalaJSVersion        = V.scalaJS
+    override def moduleDeps   = Seq(htmlid.js(crossScalaVersion))
+    override def mvnDeps      = super.mvnDeps() ++ Seq(mvn"com.raquo::airstream::${V.airstream}")
+  }
+  object js extends Cross[JsModule](V.scalaVersions)
+}
+
+// Module-name encoding:
+//   on-disk         camelCase Mill object   published artifactName
+//   ------------------------------------------------------------
+//   core            core                    tagless-core
+//   htmlid          htmlid                  tagless-htmlid
+//   i18n            i18n                    tagless-i18n
+//   md              md                      tagless-md
+//   meta            meta                    tagless-meta
+//   page            page                    tagless-page
+//   form            form                    tagless-form
+//   table           table                   tagless-table
+//   crud            crud                    tagless-crud
+//   route           route                   tagless-route
+//   viz             viz                     tagless-viz
+//   htmx            htmx                    tagless-htmx
+//   svg             svg                     tagless-svg
+//   events          events (JS only)        tagless-events

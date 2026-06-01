@@ -1,0 +1,29 @@
+# Mill
+out/
+.bsp/
+.metals/
+.bloop/
+.scala-build/
+mill.*
+*.semanticdb
+
+# Nix
+result
+result-*
+.direnv/
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node (for example app webdirs)
+node_modules/
+*.log
+.pnpm-store/
+test-results/
+playwright-report/
