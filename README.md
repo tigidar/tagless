@@ -3,6 +3,14 @@
 A type-safe HTML DSL family for Scala 3, organized as **14 small focused
 modules** so consumers can pull exactly the surface they need.
 
+> ## 🚧 UNDER CONSTRUCTION 🚧
+>
+> **This project is a work in progress and is not yet usable.** Nothing here is
+> guaranteed to work, compile, or stay stable. APIs, types, and documentation
+> may change or disappear without notice, and any published coordinates below
+> are **not yet released**. Do not depend on this project yet — treat everything
+> in this README as a statement of intent, not a promise.
+
 - **Group:** `no.virtual-architect`
 - **Version:** `0.1.0-SNAPSHOT`
 - **Scala:** 3.8.3 · **Scala.js:** 1.20.1
